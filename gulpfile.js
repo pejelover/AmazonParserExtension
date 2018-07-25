@@ -8,7 +8,7 @@ var del				= require('del');
 var htmlmin			= require('gulp-htmlmin');
 var concat 			= require('gulp-concat');
 var mergeStream		= require('merge-stream');
-var closureCompiler = require('google-closure-compiler').gulp();
+//var closureCompiler = require('google-closure-compiler').gulp();
 
 
 gulp.task('default', ['html' ,'css' ,'scripts' ,'images' ,'watch','manifest']);
