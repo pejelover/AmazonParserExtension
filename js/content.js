@@ -1,6 +1,6 @@
 var parseOnlyOneVendor	= true;
 var parser 				= new AmazonParser();
-var ext = new Client();
+var client= new Client();
 
 
 function parse()
@@ -36,7 +36,7 @@ function parse()
 		if( pageType == 'SEARCH_PAGE' )
 		{
 			let p = parser.parseProductSearchList();
-			console.log('PageSearchProducts', p );
+			client.executeOnBackground("ProductsFound", p );
 		}
 		if( pageType == 'PRODUCT_PAGE' )
 		{
@@ -44,6 +44,7 @@ function parse()
 			console.log('Product page',p);
 			let p2 = parser.getProductFromBuyBox();
 			console.log("product page",p, "buy box product", p2 );
+			client.executeOnBackground("ProductsFound",[p,p2 ]);
 		}
 	})
 	.catch((e)=>

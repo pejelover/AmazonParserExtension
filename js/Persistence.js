@@ -5,85 +5,106 @@ class Persistence
 	{
 		this.db = new DatabaseStore
 		({
-			name		: "product"
+			name		: "products"
 			,version	: 1
 			,stores		:{
-				user:
+				products:
 				{
 					keyPath	: 'asin'
 					,autoincrement: false
 					,indexes	:
 					[
-						{ indexName	: "parsedDate"	,keyPath:"parsedDates"	,objectParameters: { uniq: false ,multiEntry: true} }
-						,{ producer	: "producer"	,keyPath:"producer"		,objectParameters: { uniq: false ,multiEntry: false } }
-						//,{ priceDate: "offers"	,keyPath:"offers"	,objectParameters: { uniq: false ,multiEntry: true } }
-						,{ seller	: "seller"		,keyPath:"offers.sellerName"		,objectParameters: { uniq: false ,multiEntry: true } }
+						{ indexName : "producer"	,keyPath:"producer" ,objectParameters: { uniq: false, multientry: false} }
+						,{ indexName	: "parsedDates"	,keyPath:"offers"	,objectParameters: { uniq: false ,multiEntry: true} }
 					]
 				}
 			}
 		});
+
+		this.db.init();
 	}
 
 	updateProduct(product)
 	{
+		return this.db.get("products",product.asin ).then((oldProduct)=>
+		{
+			if( oldProduct )
+				this.mergeProducts(oldProduct, product );
 
+			return this.db.put("products", product );
+		}).catch((e)=>
+		{
+			console.error("product not found", e );
+			return Promise.resolve( product );
+			//return this.put("products", product );
+		});
 	}
 
 	sortProductList( list )
 	{
 		list.sort((a,b)=>
 		{
-			if( a === b )
-				return 0;
-			return a < b ? -1 : 1;
+			return a.asin < b.asin ? -1 : 1;
 		});
 	}
 
 	updateProductLists(list)
 	{
-		this.sortProductList( list );
-		return this.db.updateBatch("products",list,(oldProduct,newProduct)=>
+		return PromiseUtil.runSequential( list, (newProduct,index)=>
 		{
-			if( oldProduct )
-			{
-				this.addProductAttributes( oldProduct, newProduct );
-				return oldProduct;
-			}
-
-			return newProduct;
+			return this.updateProduct( newProduct );
 		});
 	}
 
-	overlapingInfo( a ,b ,key ,lambda )
+	overlapingInfo( from, to,key ,lambda )
 	{
+		if( !from || !to  )
+			return;
+
 		let aKeys	= {};
 		let isFunc  = typeof key === "function";
 
-		b.forEach((i)=>
+		to.forEach((i)=>
 		{
-			aKeys[ isFunc ? key( i ) : a[ key ] ] = i;
+			aKeys[ isFunc ? key( i ) : to[ key ] ] = i;
 		});
 
-		a.forEach((i)=>
+		from.forEach((i)=>
 		{
-			let bKey = isFunc ? key( i ) : b[ key ];
+			let bKey = isFunc ? key( i ) : from[ key ];
 
 			lambda( i, bKey in aKeys );
 		});
 	}
 
-	addProductAttributes( oldProduct, newProduct )
+	mergeProducts( oldProduct, newProduct )
 	{
-		this.overlapingInfo(newProduct, oldProduct, "date", (element,isOverlap)=>
+		let keys = Object.keys( oldProduct );
+
+		keys.forEach((k)=>
+		{
+			if( (k in newProduct && newProduct[ k ] ) ||  k == 'offers' || k == 'stock' )
+				return;
+
+			newProduct[ k ] = oldProduct[ k ];
+		});
+
+		if( !newProduct.stock )
+			newProduct.stock = [];
+
+		this.overlapingInfo( oldProduct.stock, newProduct.stock, "date", (element,isOverlap)=>
 		{
 			if( !isOverlap )
-				oldProduct.parsedDates.push( element );
+				newProduct.stock.push( element );
 		});
+
+		if( !newProduct.offers )
+			newProduct.offers = [];
 
 		this.overlapingInfo
 		(
-			newProduct.offers
-			,oldProduct.offers
+			oldProduct.offers
+			,newProduct.offers
 			,(offer)=>
 			{
 				return offer.date+' '+offer.sellerName+' '+( offer.isPrime ? 'prime' :'' )+( 'condition' in offer ? ' '+offer.condition : 'New' );
@@ -92,7 +113,7 @@ class Persistence
 			{
 				if( !isOverlap )
 				{
-					oldProduct.offers.push( offer );
+					newProduct.offers.push( offer );
 				}
 			}
 		);
