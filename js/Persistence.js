@@ -66,26 +66,61 @@ class Persistence
 		let aKeys	= {};
 		let isFunc  = typeof key === "function";
 
-		to.forEach((i)=>
+		if( key == null )
 		{
-			aKeys[ isFunc ? key( i ) : to[ key ] ] = i;
-		});
+			to.forEach( i => aKeys[ i ] = 1 );
 
-		from.forEach((i)=>
+			from.forEach((i)=>
+			{
+				lambda( i, i in aKeys );
+
+			});
+		}
+		else
 		{
-			let bKey = isFunc ? key( i ) : from[ key ];
+			to.forEach((i)=>
+			{
+				aKeys[ isFunc ? key( i ) : to[ key ] ] = i;
+			});
 
-			lambda( i, bKey in aKeys );
-		});
+			from.forEach((i)=>
+			{
+				let bKey = isFunc ? key( i ) : from[ key ];
+				lambda( i, bKey in aKeys );
+			});
+		}
 	}
 
 	mergeProducts( oldProduct, newProduct )
 	{
 		let keys = Object.keys( oldProduct );
 
+		let arraysKeys	= {
+			'offers'		:false
+			,'stock'		:false
+			,'merchants'	:false
+			,'search'		:true
+			,'qids'			:true
+			,'sellers'		:true
+			,'merchants_ids':true
+		};
+
 		keys.forEach((k)=>
 		{
-			if( (k in newProduct && newProduct[ k ] ) ||  k == 'offers' || k == 'stock' )
+			if( k in arraysKeys )
+			{
+				if( arraysKeys[ k ] )
+				{
+					this.overlapingInfo( oldProduct[ k ], newProduct[ k ], null, (element,isOverlap )=>
+					{
+						if( !isOverlap )
+							newProduct[ k ].push( element );
+					});
+				}
+				return;
+			}
+
+			if( (k in newProduct && newProduct[ k ] ) || k in arraysKeys  )
 				return;
 
 			newProduct[ k ] = oldProduct[ k ];
