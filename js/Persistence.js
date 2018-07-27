@@ -16,6 +16,8 @@ class Persistence
 					[
 						{ indexName : "producer"	,keyPath:"producer" ,objectParameters: { uniq: false, multientry: false} }
 						,{ indexName	: "parsedDates"	,keyPath:"offers"	,objectParameters: { uniq: false ,multiEntry: true} }
+						,{ indexName	: "sellers"	,keyPath:"sellers"	,objectParameters: { uniq: false ,multiEntry: true} }
+						,{ indexName	: "search"	,keyPath:"search"	,objectParameters: { uniq: false ,multiEntry: true} }
 					]
 				}
 			}

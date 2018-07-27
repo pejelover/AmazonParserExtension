@@ -36,15 +36,29 @@ function parse()
 		if( pageType == 'SEARCH_PAGE' )
 		{
 			let p = parser.parseProductSearchList();
-			client.executeOnBackground("ProductsFound", p );
+			if( p.length == 0 )
+				p = parser.parseProductSearchList2();
+
+			if( p.length )
+				client.executeOnBackground("ProductsFound", p );
 		}
+
 		if( pageType == 'PRODUCT_PAGE' )
 		{
+			let products = [];
 			let p = parser.getProductFromProductPage();
-			console.log('Product page',p);
+			if( p )
+				products.push( p );
+
 			let p2 = parser.getProductFromBuyBox();
+
+			if( p2 )
+				products.push( p2 );
+
 			console.log("product page",p, "buy box product", p2 );
-			client.executeOnBackground("ProductsFound",[p,p2 ]);
+
+			if( products.length )
+				client.executeOnBackground("ProductsFound",products );
 		}
 	})
 	.catch((e)=>
