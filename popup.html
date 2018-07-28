@@ -1,3 +1,49 @@
 <!DOCTYPE html>
 <html>
+	<head>
+		 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<script src="js/popup.js"></script>
+		<script src="js/db-finger/DatabaseStore.js"></script>
+		<script src="js/Persistence.js"></script>
+		<style>
+			#main_container
+			{
+				min-width: 400px;
+					padding: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="main_container">
+			<div class="input-group">
+				<select class="custom-select" id="inputGroupSelect04" aria-label="Select Filter type">
+					<option value="">No Filter</option>
+					<option value="search">Search</option>
+					<option value="producer">Producer</option>
+					<option value="Seller">Seller</option>
+				</select>
+
+				<div class="input-group-append">
+					<input type="text" class="form-control" placeholder="" name="param1">
+				</div>
+
+				<div class="input-group-append">
+					<input type="text" class="form-control" placeholder="" name="param2">
+				</div>
+			</div>
+
+			<div class="input-group">
+				<select class="custom-select" id="report-type" aria-label="Select report type to download">
+					<option value="Basic Info" selected>Basic Info</option>
+					<option value="products_without_stock">Products without a registered stock</option>
+					<option value="historic_stock">Historic Stock</option>
+					<option value="historic_price">Historic Price</option>
+				</select>
+				<div class="input-group-append">
+					<button id="downloadButton" class="btn btn-outline-secondary" type="button">Download</button>
+				</div>
+			</div>
+		</div>
+	</body>
 </html>
