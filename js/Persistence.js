@@ -6,7 +6,7 @@ class Persistence
 		this.database= new DatabaseStore
 		({
 			name		: "products"
-			,version	: 1
+			,version	: 4
 			,stores		:{
 				products:
 				{
@@ -15,7 +15,6 @@ class Persistence
 					,indexes	:
 					[
 						{ indexName : "producer"	,keyPath:"producer" ,objectParameters: { uniq: false, multientry: false} }
-						,{ indexName	: "parsedDates"	,keyPath:"offers"	,objectParameters: { uniq: false ,multiEntry: true} }
 						,{ indexName	: "sellers"	,keyPath:"sellers"	,objectParameters: { uniq: false ,multiEntry: true} }
 						,{ indexName	: "search"	,keyPath:"search"	,objectParameters: { uniq: false ,multiEntry: true} }
 					]
@@ -28,15 +27,52 @@ class Persistence
 
 	updateProduct(product)
 	{
+
 		return this.database.get("products",product.asin ).then((oldProduct)=>
 		{
 			if( oldProduct )
 				this.mergeProducts(oldProduct, product );
 
+			if( ! 'offers' in product )
+				product.offers  = [];
+
+			if( 'dateParsed' in product )
+			{
+				if( ! 'parsed' in product )
+				{
+					let x = new Date( product.dateParsed );
+					product.parsed = x.toISOString();
+				}
+
+				delete newProduct.dateParsed;
+			}
+
+			if( product.offers.length === 0 )
+			{
+				if( product.price )
+				{
+					let date = new Date( product.parsed );
+
+					let offer = {
+						price	: product.price
+						,date	: this.getDateString( date )
+						,time	: date.toISOString()
+					};
+
+					product.offers.push( offer );
+				}
+			}
+
+			if( versions in product )
+				delete product.versions;
+
 			return this.database.put("products", product );
-		}).catch((e)=>
+		})
+		.catch((e)=>
 		{
-			console.error("product not found", e );
+			//This implentation sucks, can occour a data loss
+			//XXX do some refactoring here and there ^|
+			//console.error("product not found", e );
 			return Promise.resolve( product );
 			//return this.put("products", product );
 		});
@@ -54,6 +90,7 @@ class Persistence
 	{
 		return PromiseUtil.runSequential( list, (newProduct,index)=>
 		{
+
 			return this.updateProduct( newProduct );
 		});
 	}
@@ -144,7 +181,7 @@ class Persistence
 			,newProduct.offers
 			,(offer)=>
 			{
-				return offer.date+' '+offer.sellerName+' '+( offer.isPrime ? 'prime' :'' )+( 'condition' in offer ? ' '+offer.condition : 'New' );
+				return offer.price+' '+offer.date+' '+offer.sellerName+' '+( offer.isPrime ? 'prime' :'' )+( 'condition' in offer ? ' '+offer.condition : 'New' );
 			}
 			,(offer, isOverlap)=>
 			{
@@ -184,6 +221,11 @@ class Persistence
 		return this.database.getAll("products", options );
 	}
 
+
+	generateHistoricPrices()
+	{
+
+	}
 
 
 	generateRawReport(products)
@@ -302,5 +344,13 @@ class Persistence
 			//,'Lower Temperature Rating':1
 			,'Parsed Date';:1
 			*/
+	}
+
+	getDateString( date )
+	{
+		let fl = (i)=> i<10 ? '0'+i : i;
+		let dateStr = date.getFullYear()+'-'+fl( date.getMonth()+1 )+'-'+fl( date.getDate() );
+
+		return dateStr;
 	}
 }

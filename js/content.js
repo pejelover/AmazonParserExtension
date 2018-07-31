@@ -35,12 +35,21 @@ function parse()
 
 		if( pageType == 'SEARCH_PAGE' )
 		{
-			let p = parser.parseProductSearchList();
-			if( p.length == 0 )
-				p = parser.parseProductSearchList2();
+			PromiseUtil.resolveAfter(3000,1).then(()=>
+			{
+				let p = parser.parseProductSearchList();
+				if( p.length == 0 )
+					p = parser.parseProductSearchList2();
 
-			if( p.length )
-				client.executeOnBackground("ProductsFound", p );
+				if( p.length )
+					client.executeOnBackground("ProductsFound", p );
+			});
+		}
+
+		if( pageType == 'VENDORS_PAGE' )
+		{
+			let p = parser.getProductFromSellersPage();
+			client.executeOnBackground("ProductsFound",[p] );
 		}
 
 		if( pageType == 'PRODUCT_PAGE' )
@@ -59,6 +68,17 @@ function parse()
 
 			if( products.length )
 				client.executeOnBackground("ProductsFound",products );
+		}
+
+		if( pageType == 'CART_PAGE' )
+		{
+			let p = parser.getProductsFromCart();
+
+			console.log( p );
+
+			if( p.length )
+				client.executeOnBackground("ProductsFound",p );
+
 		}
 	})
 	.catch((e)=>
