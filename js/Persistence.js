@@ -5,7 +5,7 @@ class Persistence
 	{
 		this.database= new DatabaseStore
 		({
-			name		: "products"
+			name		: 'products'
 			,version	: 4
 			,stores		:{
 				products:
@@ -14,9 +14,9 @@ class Persistence
 					,autoincrement: false
 					,indexes	:
 					[
-						{ indexName : "producer"	,keyPath:"producer" ,objectParameters: { uniq: false, multientry: false} }
-						,{ indexName	: "sellers"	,keyPath:"sellers"	,objectParameters: { uniq: false ,multiEntry: true} }
-						,{ indexName	: "search"	,keyPath:"search"	,objectParameters: { uniq: false ,multiEntry: true} }
+						{ indexName : 'producer'	,keyPath:'producer' ,objectParameters: { uniq: false, multientry: false} }
+						,{ indexName	: 'sellers'	,keyPath:'sellers'	,objectParameters: { uniq: false ,multiEntry: true} }
+						,{ indexName	: 'search'	,keyPath:'search'	,objectParameters: { uniq: false ,multiEntry: true} }
 					]
 				}
 			}
@@ -25,26 +25,39 @@ class Persistence
 		this.database.init();
 	}
 
-	updateProduct(product)
+	updateProduct( product )
 	{
-
-		return this.database.get("products",product.asin ).then((oldProduct)=>
+		return this.database.get('products',product.asin ).then(( oldProduct )=>
 		{
 			if( oldProduct )
 				this.mergeProducts(oldProduct, product );
 
-			if( ! 'offers' in product )
+			if( 'qids' in product )
+			{
+				delete product.qids;
+			}
+
+			if( !( 'offers' in product) )
 				product.offers  = [];
+
+			if( 'time' in product )
+			{
+				if( 'parsed' in product )
+				{
+					product.parsed = product.time;
+					delete product.time;
+				}
+			}
 
 			if( 'dateParsed' in product )
 			{
-				if( ! 'parsed' in product )
+				if( !( 'parsed' in product ) )
 				{
 					let x = new Date( product.dateParsed );
 					product.parsed = x.toISOString();
 				}
 
-				delete newProduct.dateParsed;
+				delete product.dateParsed;
 			}
 
 			if( product.offers.length === 0 )
@@ -55,7 +68,6 @@ class Persistence
 
 					let offer = {
 						price	: product.price
-						,date	: this.getDateString( date )
 						,time	: date.toISOString()
 					};
 
@@ -63,18 +75,18 @@ class Persistence
 				}
 			}
 
-			if( versions in product )
+			if( 'versions' in product )
 				delete product.versions;
 
-			return this.database.put("products", product );
+			return this.database.put('products', product );
 		})
 		.catch((e)=>
-		{
+			{
 			//This implentation sucks, can occour a data loss
 			//XXX do some refactoring here and there ^|
 			//console.error("product not found", e );
-			return Promise.resolve( product );
-			//return this.put("products", product );
+				return Promise.resolve( product );
+			//return this.put('products', product );
 		});
 	}
 
@@ -90,7 +102,6 @@ class Persistence
 	{
 		return PromiseUtil.runSequential( list, (newProduct,index)=>
 		{
-
 			return this.updateProduct( newProduct );
 		});
 	}
@@ -137,10 +148,21 @@ class Persistence
 			,'stock'		:false
 			,'merchants'	:false
 			,'search'		:true
-			,'qids'			:true
 			,'sellers'		:true
+			,'parsedDates'	:true
 			,'merchants_ids':true
 		};
+
+		if( 'offers' in oldProduct )
+		{
+			oldProduct.offers.forEach((offer )=>
+			{
+				if( 'seller' in offer )
+				{
+					oldProduct.sellers.push( offer.seller.toLowerCase() );
+				}
+			});
+		}
 
 		keys.forEach((k)=>
 		{
@@ -166,7 +188,7 @@ class Persistence
 		if( !newProduct.stock )
 			newProduct.stock = [];
 
-		this.overlapingInfo( oldProduct.stock, newProduct.stock, "date", (element,isOverlap)=>
+		this.overlapingInfo( oldProduct.stock, newProduct.stock, 'date', (element,isOverlap)=>
 		{
 			if( !isOverlap )
 				newProduct.stock.push( element );
@@ -175,16 +197,20 @@ class Persistence
 		if( !newProduct.offers )
 			newProduct.offers = [];
 
-		this.overlapingInfo
-		(
+		this.overlapingInfo(
 			oldProduct.offers
 			,newProduct.offers
 			,(offer)=>
 			{
-				return offer.price+' '+offer.date+' '+offer.sellerName+' '+( offer.isPrime ? 'prime' :'' )+( 'condition' in offer ? ' '+offer.condition : 'New' );
+				return offer.price+' '+offer.time+' '+offer.sellerName+' '+( offer.is_prime ? 'prime' :'' )+( 'condition' in offer ? ' '+offer.condition : 'New' );
 			}
 			,(offer, isOverlap)=>
 			{
+				if( 'qid' in offer )
+				{
+					delete  offer.qid;
+				}
+
 				if( !isOverlap )
 				{
 					newProduct.offers.push( offer );
@@ -195,30 +221,31 @@ class Persistence
 
 	getProductList( options )
 	{
-		return this.database.getAll("products",{});
+		return this.database.getAll('products',{});
 	}
 
 	getProductListBySearch( search )
 	{
-		return this.database.getAll("products", {index:"search", "=": search });
+		return this.database.getAll('products', {index:'search', '=': search });
 	}
 
 	getProductListByParsedDate( search,options)
 	{
 		let opt	= {
-			index	: "parsed"
-		}
+			index	: 'parsed'
+		};
+
 		if( options.start )
 		{
-			opt[">="] = options.start;
+			opt['>='] = options.start;
 		}
 
 		if( options.end )
 		{
-			opt["<"] = options.end;
+			opt['<'] = options.end;
 		}
 
-		return this.database.getAll("products", options );
+		return this.database.getAll('products', options );
 	}
 
 
@@ -228,21 +255,23 @@ class Persistence
 	}
 
 
-	generateRawReport(products)
+	generateRawReport( productsArray )
 	{
-		let csv	= [];
 		let keys 		= Object.keys( this.getValidKeys() );
 
 		let s = keys.join('\t')+'\n';
 
-		products.forEach((p)=>
+		productsArray.forEach(( product )=>
 		{
 			let row = [];
 			keys.forEach((key)=>
 			{
-				if( key in p )
+				if( key in product )
 				{
-					let value =  typeof p[key] === "string" ? p[key].trim().replace(/"/g, '""' ).replace(/\t/,' ') : p[ key ];
+					let value =  typeof product[key] === 'string'
+						? product[key].trim().replace(/"/g, '""' ).replace(/\t/,' ')
+						: product[ key ];
+
 					row.push( '"'+value+'"' );
 				}
 				else
@@ -250,7 +279,8 @@ class Persistence
 					row.push( '""' );
 				}
 			});
-			s+= row.join("\t")+"\n";
+
+			s+= row.join('\t')+'\n';
 		});
 
 		return s;
@@ -268,7 +298,7 @@ class Persistence
 			,no_offers_text: true
 			,rating	: true
 			,number_of_ratings: true
-		}
+		};
 		/*
 		return {
 			'asin':1

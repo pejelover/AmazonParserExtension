@@ -2,41 +2,42 @@
 var gulp			= require('gulp');
 var sass 			= require('gulp-sass');
 var autoprefixer	= require('gulp-autoprefixer');
-var minifyCss		= require('gulp-minify-css');
+//var minifyCss		= require('gulp-minify-css');
 var rename			= require('gulp-rename');
 var del				= require('del');
 var htmlmin			= require('gulp-htmlmin');
 var concat 			= require('gulp-concat');
 var mergeStream		= require('merge-stream');
 //var closureCompiler = require('google-closure-compiler').gulp();
+//var amazonDir		= '/home/pejelover/Projects/AmazonParser';
+var amazonDir		= './node_modules/amazon-parser';
 
 
 gulp.task('default', ['html' ,'css' ,'scripts' ,'images' ,'watch','manifest']);
 
 gulp.task('watch',()=>
 {
-	console.log('Default');
-  	gulp.watch( [ './css/*.css' ] ,['css'] );
-  	gulp.watch ( ['./js/*.js' ] ,['scripts']);
+	gulp.watch( [ './css/*.css' ] ,['css'] );
+	gulp.watch ( ['./js/*.js' ] ,['scripts']);
 	gulp.watch ( [ 'manifest.json' ], ['manifest'] );
 	gulp.watch(['./html/*.html','./popup.html'],['html']);
 	gulp.watch(['./node_modules/extension-framework/*.js'
 		,'./node_modules/promiseutil/*.js'
 		,'./node_modules/db-finger/DatabaseStore.js'
-		,'./node_modules/amazon-parser/AmazonParser.js'],['scripts']);
+		,amazonDir+'/AmazonParser.js'],['scripts']);
 });
 
 
 gulp.task('manifest',()=>
 {
 	return gulp.src(['./manifest.json'])
-	.pipe(gulp.dest('./dist/') );
+		.pipe(gulp.dest('./dist/') );
 });
 
 gulp.task('html',()=>
 {
 	return gulp.src(['./popup.html'])
- 		.pipe(htmlmin({
+		.pipe(htmlmin({
 			collapseWhitespace	: true
 			,removeComments		: true
 		}))
@@ -46,7 +47,7 @@ gulp.task('html',()=>
 gulp.task('images',()=>
 {
 	return gulp.src(['images/*.png','*.png'])
-	.pipe( gulp.dest('dist/images/') );
+		.pipe( gulp.dest('dist/images/') );
 });
 
 gulp.task('css', function () {
@@ -65,7 +66,7 @@ gulp.task('scripts', function()
 	let utils = gulp.src(['./node_modules/promiseutil/*.js'])
 		.pipe(gulp.dest('./dist/js/Promise-Utils/') );
 
-	let ap	= gulp.src(['./node_modules/amazon-parser/*.js'])
+	let ap	= gulp.src([amazonDir+'/*.js'])
 		.pipe(gulp.dest( './dist/js/AmazonParser/' ) );
 
 	let scripts	=  gulp.src(['./js/*.js']).pipe( gulp.dest('./dist/js/') );
