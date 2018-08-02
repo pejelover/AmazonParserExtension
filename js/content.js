@@ -1,7 +1,35 @@
 
-//var parseOnlyOneVendor	= true;
-var parser	= new AmazonParser();
-var client	= new Client();
+if( window.location.hostname === 'www.amazon.com' )
+{
+	//var parseOnlyOneVendor	= true;
+	var parser	= new AmazonParser();
+	var client	= new Client();
+	var last_url = window.location.href;
+
+	client.executeOnBackground
+	(
+		"UrlDetected"
+		,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
+	);
+
+	let checkUrl = ()=>
+	{
+		if( last_url !== window.location.href )
+		{
+			last_url = window.location.href;
+			client.executeOnBackground
+			(
+				"UrlDetected"
+				,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
+			);
+			parse();
+		}
+	};
+
+	parse();
+
+	setInterval( checkUrl, 700 );
+}
 
 function parse()
 {
@@ -90,20 +118,3 @@ function parse()
 		console.log( e );
 	});
 }
-
-
-var last_url = window.location.href;
-
-function checkUrl()
-{
-	if( last_url !== window.location.href )
-	{
-		last_url = window.location.href;
-		parse();
-	}
-}
-
-parse();
-
-setInterval( checkUrl, 700 );
-
