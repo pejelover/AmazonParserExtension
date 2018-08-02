@@ -11,10 +11,38 @@ document.addEventListener('DOMContentLoaded', function()
 
 	document.getElementById('downloadButton').addEventListener('click',(evt)=>
 	{
+		let type = document.getElementById('report-type').value;
+
 		persistence.getProductList().then((products)=>
 		{
-			let s = persistence.generateRawReport( products );
-			download('something.csv',s );
+			switch( type )
+			{
+				case 'Basic Info'	:
+				{
+					let s = persistence.generateRawReport( products );
+					download('something.csv',s );
+					break;
+				}
+				case 'products_without_stock':
+				{
+					//let s = persistence.generateProductsNoStock( products );
+					let s = persistence.generateRawReport( products );
+					download('something.csv',s);
+					break;
+				}
+				case 'historic_stock':
+				{
+					let s = persistence.generateHistoricStockReport( products );
+					download('something.csv',s);
+					break;
+				}
+				case 'history_prices':
+				{
+					let s = persistence.generateRawReport( products );
+					download('something.csv',s);
+					break;
+				}
+			}
 		});
 	});
 
