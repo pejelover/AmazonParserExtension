@@ -1,32 +1,32 @@
-var parseOnlyOneVendor	= true;
-var parser 				= new AmazonParser();
-var client= new Client();
 
+//var parseOnlyOneVendor	= true;
+var parser	= new AmazonParser();
+var client	= new Client();
 
 function parse()
 {
-	PromiseUtil.resolveAfter( 400 ,1)
-	.then(()=>
+	PromiseUtil.resolveAfter( 400 ,1).then(()=>
 	{
 		let robotsRegex =/Robot\s+Check/i;
 
 		if( robotsRegex.test( document.title ) )
 		{
 			return new Promise((resolve,reject)=>
-			{
-				let intervalId = 0;
-				let lambda		= ()=>{
-					if( !robotsRegex.test( document.title ) )
+				{
+					let interval_id = 0;
+					let lambda		= ()=>
 					{
-						console.log('Checking Again');
-						clearInterval( interval_id );
-						resolve(1);
-					}
-				};
+						if( !robotsRegex.test( document.title ) )
+						{
+							clearInterval( interval_id );
+							resolve( 1 );
+						}
+					};
 
-				interval_id = setInterval( lambda, 5000 );
-			});
+					interval_id = setInterval( lambda, 5000 );
+				});
 		}
+
 		return Promise.resolve( true );
 	})
 	.then(()=>
@@ -35,21 +35,25 @@ function parse()
 
 		if( pageType == 'SEARCH_PAGE' )
 		{
-			PromiseUtil.resolveAfter(3000,1).then(()=>
+			PromiseUtil.resolveAfter(2000,1).then(()=>
+			{
+				return client.waitTillReady( parser.getSearchListSelector() );
+			})
+			.then(()=>
 			{
 				let p = parser.parseProductSearchList();
 				if( p.length == 0 )
 					p = parser.parseProductSearchList2();
 
 				if( p.length )
-					client.executeOnBackground("ProductsFound", p );
+					client.executeOnBackground('ProductsFound', p );
 			});
 		}
 
 		if( pageType == 'VENDORS_PAGE' )
 		{
 			let p = parser.getProductFromSellersPage();
-			client.executeOnBackground("ProductsFound",[p] );
+			client.executeOnBackground('ProductsFound',[p] );
 		}
 
 		if( pageType == 'PRODUCT_PAGE' )
@@ -64,10 +68,10 @@ function parse()
 			if( p2 )
 				products.push( p2 );
 
-			console.log("product page",p, "buy box product", p2 );
+			console.log('product page',p, 'buy box product', p2 );
 
 			if( products.length )
-				client.executeOnBackground("ProductsFound",products );
+				client.executeOnBackground('ProductsFound',products );
 		}
 
 		if( pageType == 'CART_PAGE' )
@@ -77,7 +81,7 @@ function parse()
 			console.log( p );
 
 			if( p.length )
-				client.executeOnBackground("ProductsFound",p );
+				client.executeOnBackground('ProductsFound',p );
 
 		}
 	})
@@ -88,8 +92,7 @@ function parse()
 }
 
 
-
-last_url = window.location.href;
+var last_url = window.location.href;
 
 function checkUrl()
 {
