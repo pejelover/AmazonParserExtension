@@ -257,7 +257,7 @@ class Persistence
 
 	generateRawReport( productsArray )
 	{
-		let keys 		= Object.keys( this.getValidKeys() );
+		let keys 		= Object.keys( this.getValidRawReportKeys() );
 
 		let s = keys.join('\t')+'\n';
 
@@ -286,8 +286,71 @@ class Persistence
 		return s;
 	}
 
-	getValidKeys()
+	generateHistoricStockReport( productsArray )
 	{
+		let keys 		= Object.keys( this.getValidHistoricStockKeys() );
+
+		let s = keys.join('\t')+'\n';
+		let days	= {};
+
+		productsArray.forEach(( product )=>
+		{
+			if( !('stock' in product ) )
+			{
+				return;
+			}
+
+			product.stock.forEach((stock)=>
+			{
+				let row = [];
+
+				keys.forEach((key)=>
+				{
+					if( key == "asin" )
+					{
+						row.push( product.asin );
+						return;
+					}
+
+					if( key in stock )
+					{
+						let value =  typeof stock[key] === 'string'
+							? stock[key].trim().replace(/"/g, '""' ).replace(/\t/,' ')
+							: stock[ key ];
+
+						row.push( '"'+value+'"' );
+					}
+					else
+					{
+						row.push( '""' );
+					}
+				});
+
+				s+= row.join('\t')+'\n';
+			});
+		});
+
+		return s;
+	}
+
+	getValidHistoricStockKeys()
+	{
+		// this is a dictionary, why?
+		// Maybe a map for diferent values
+		return {
+			"asin"	: true
+			,"seller": true
+			,"time"	: true
+			,"qty": true
+			,"seller_id": true
+			,"seller_url": true
+			,"smid"	: true
+		};
+	}
+
+	getValidRawReportKeys()
+	{
+		// this is a dictionary, why?
 		return {
 			asin: true
 			,url:true
