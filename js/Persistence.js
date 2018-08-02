@@ -6,7 +6,7 @@ class Persistence
 		this.database= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 4
+			,version	: 6
 			,stores		:{
 				products:
 				{
@@ -14,15 +14,30 @@ class Persistence
 					,autoincrement: false
 					,indexes	:
 					[
-						{ indexName : 'producer'	,keyPath:'producer' ,objectParameters: { uniq: false, multientry: false} }
-						,{ indexName	: 'sellers'	,keyPath:'sellers'	,objectParameters: { uniq: false ,multiEntry: true} }
-						,{ indexName	: 'search'	,keyPath:'search'	,objectParameters: { uniq: false ,multiEntry: true} }
+						{ indexName : 'producer'	,keyPath:'producer' ,objectParameters: { uniq: false, multiEntry: false} }
+						,{ indexName: 'sellers'	,keyPath:'sellers'	,objectParameters: { uniq: false ,multiEntry: true} }
+						,{ indexName: 'search'	,keyPath:'search'	,objectParameters: { uniq: false ,multiEntry: true} }
+						,{ indexName: 'parsedDates'	,keyPath:'parsedDates', objectParameters: { uniq: false ,multiEntry: true} }
+					]
+				}
+				,urls:
+				{
+					keyPath: 'url'
+					,autoincrement: false
+					,indexes	:
+					[
+						{indexName: 'type', keyPath: 'type', objectParameters:{ uniq: false, multiEntry: true } }
 					]
 				}
 			}
 		});
 
 		this.database.init();
+	}
+
+	updateUrl( url )
+	{
+		return this.database.put( 'urls', url );
 	}
 
 	updateProduct( product )
@@ -155,6 +170,10 @@ class Persistence
 
 		if( 'offers' in oldProduct )
 		{
+			if( !('sellers' in oldProduct ) )
+			{
+				oldProduct.sellers = [];
+			}
 			oldProduct.offers.forEach((offer )=>
 			{
 				if( 'seller' in offer )
