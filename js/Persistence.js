@@ -47,32 +47,13 @@ class Persistence
 			if( oldProduct )
 				this.mergeProducts(oldProduct, product );
 
-			if( 'qids' in product )
+			try
 			{
-				delete product.qids;
+				this.cleanProductNormalize( product );
 			}
-
-			if( !( 'offers' in product) )
-				product.offers  = [];
-
-			if( 'time' in product )
+			catch(e)
 			{
-				if( 'parsed' in product )
-				{
-					product.parsed = product.time;
-					delete product.time;
-				}
-			}
-
-			if( 'dateParsed' in product )
-			{
-				if( !( 'parsed' in product ) )
-				{
-					let x = new Date( product.dateParsed );
-					product.parsed = x.toISOString();
-				}
-
-				delete product.dateParsed;
+				console.error( e );
 			}
 
 			if( product.offers.length === 0 )
@@ -165,24 +146,8 @@ class Persistence
 			,'search'		:true
 			,'sellers'		:true
 			,'parsedDates'	:true
-			,'merchants_ids':true
+			,'seller_ids'	:true
 		};
-
-		if( 'offers' in oldProduct )
-		{
-			if( !('sellers' in oldProduct ) )
-			{
-				oldProduct.sellers = [];
-			}
-			oldProduct.offers.forEach((offer )=>
-			{
-				if( 'seller' in offer )
-				{
-					oldProduct.sellers.push( offer.seller.toLowerCase() );
-				}
-			});
-		}
-
 		keys.forEach((k)=>
 		{
 			if( k in arraysKeys )
@@ -331,18 +296,24 @@ class Persistence
 						return;
 					}
 
-					if( key in stock )
+					if( key == "qty" )
 					{
-						let value =  typeof stock[key] === 'string'
-							? stock[key].trim().replace(/"/g, '""' ).replace(/\t/,' ')
-							: stock[ key ];
+						if( /^\d+$/.test( stock.qty ) )
+						{
+							row.push( stock.qty );
+						}
+						else if( /Only \d+ left in stock - order soon./.test( stock.qty ) )
+						{
+							row.push(stock.qty.replace(/^.*Only (\d+) left in stock - order soon.*$/,'$1'));
+						}
+						else
+						{
+							row.push( stock.qty );
+						}
+						return;
+					}
 
-						row.push( '"'+value+'"' );
-					}
-					else
-					{
-						row.push( '""' );
-					}
+					row.push( this.getValueFromRow( key, stock ) );
 				});
 
 				s+= row.join('\t')+'\n';
@@ -350,6 +321,59 @@ class Persistence
 		});
 
 		return s;
+	}
+
+	generateHistoricPriceReport( productsArray )
+	{
+		let keys 		= Object.keys( this.getValidHistoricPriceKeys() );
+
+		let s = keys.join('\t')+'\n';
+		let days	= {};
+
+		productsArray.forEach(( product )=>
+		{
+			if( !('offers' in product ) )
+			{
+				return;
+			}
+
+			product.offers.forEach((offer)=>
+			{
+				let row = [];
+
+				keys.forEach((key)=>
+				{
+					if( key == "asin" )
+					{
+						row.push( product.asin );
+						return;
+					}
+					if( key == "title" )
+					{
+						row.push( product.title );
+						return;
+					}
+
+					row.push( this.getValueFromRow( key, offer ) );
+				});
+
+				s+= row.join('\t')+'\n';
+			});
+		});
+
+		return s;
+	}
+
+	getValueFromRow( key, obj )
+	{
+		if( key in obj )
+		{
+			return  typeof obj[ key ] === 'string'
+				? obj[ key ].trim().replace(/"/g, '""' ).replace(/\t/,' ')
+				: obj[ key ];
+		}
+
+		return '""';
 	}
 
 	getValidHistoricStockKeys()
@@ -364,6 +388,21 @@ class Persistence
 			,"seller_id": true
 			,"seller_url": true
 			,"smid"	: true
+		};
+	}
+
+	getValidHistoricPriceKeys()
+	{
+		return	{
+			"asin" : true
+			,"price"	: true
+			,"time"	: true
+			,"seller" : true
+			,"seller_id": true
+			,"shipping"	: true
+			,"condition"	: true
+			,"fullfilled_by"	: true
+			,"title"		: true
 		};
 	}
 
@@ -456,6 +495,87 @@ class Persistence
 			//,'Lower Temperature Rating':1
 			,'Parsed Date';:1
 			*/
+	}
+
+	cleanProductNormalize( product )
+	{
+		if( 'offers' in product )
+		{
+			if( !('sellers' in product ) )
+			{
+				product.sellers = [];
+			}
+
+
+			product.offers.forEach((offer )=>
+			{
+				if( 'seller' in offer )
+				{
+					product.sellers.push( offer.seller.toLowerCase() );
+				}
+				if( 'seller_id' in offer )
+				{
+					product.seller_ids.push( offer.seller_id );
+				}
+			});
+		}
+
+		if( 'seller_ids' in product )
+		{
+			let kSellers = {};
+			product.seller_ids.forEach(i=>kSellers[i]=1);
+			product.seller_ids = Object.keys( kSellers );
+		}
+
+		if( 'sellers' in product )
+		{
+			let kSellers = {};
+			product.sellers.forEach(i=>kSellers[i]=1);
+			product.sellers = Object.keys( kSellers );
+		}
+
+		if( 'qids' in product )
+		{
+			delete product.qids;
+		}
+
+		if( !( 'offers' in product) )
+			product.offers  = [];
+
+		if( 'time' in product )
+		{
+			if( 'parsed' in product )
+			{
+				product.parsed = product.time;
+				delete product.time;
+			}
+		}
+
+		if( 'dateParsed' in product )
+		{
+			if( !( 'parsed' in product ) )
+			{
+				let x = new Date( product.dateParsed );
+				product.parsed = x.toISOString();
+			}
+
+			delete product.dateParsed;
+		}
+
+		if( 'stock' in product )
+		{
+			product.stock.forEach((stock)=>
+			{
+				if( /Only \d+ left in stock - order soon./.test( stock.qty ) )
+				{
+					stock.qty = stock.qty.replace(/^.*Only (\d+) left in stock - order soon.*$/,'$1');
+				}
+			});
+		}
+		else
+		{
+			product.stock = [];
+		}
 	}
 
 	getDateString( date )
