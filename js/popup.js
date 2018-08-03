@@ -36,9 +36,9 @@ document.addEventListener('DOMContentLoaded', function()
 					download('something.csv',s);
 					break;
 				}
-				case 'history_prices':
+				case 'historic_price':
 				{
-					let s = persistence.generateRawReport( products );
+					let s = persistence.generateHistoricPriceReport( products );
 					download('something.csv',s);
 					break;
 				}
