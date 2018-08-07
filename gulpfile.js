@@ -20,7 +20,7 @@ gulp.task('watch',()=>
 	gulp.watch( [ './css/*.css' ] ,['css'] );
 	gulp.watch ( ['./js/*.js' ] ,['scripts']);
 	gulp.watch ( [ 'manifest.json' ], ['manifest'] );
-	gulp.watch(['./html/*.html','./popup.html'],['html']);
+	gulp.watch(['./*.html'],['html']);
 	gulp.watch(['./node_modules/extension-framework/*.js'
 		,'./node_modules/promiseutil/*.js'
 		,'./node_modules/db-finger/DatabaseStore.js'
@@ -36,7 +36,7 @@ gulp.task('manifest',()=>
 
 gulp.task('html',()=>
 {
-	return gulp.src(['./popup.html'])
+	return gulp.src(['./*.html'])
 		.pipe(htmlmin({
 			collapseWhitespace	: true
 			,removeComments		: true

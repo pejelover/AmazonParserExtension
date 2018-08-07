@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<script src="js/Promise-Utils/PromiseUtils.js">
+		<script src="js/extension-framework/Client.js">
+		<script src="js/db-finger/DatabaseStore.js"></script>
+		<script src="js/Persistence.js"></script>
+		<script src="js/popupSettings.js"></script>
+		<style>
+			#main_container
+			{
+				min-width: 400px;
+				padding: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="main_container">
+
+			<ul class="nav">
+				<li class="nav-item">
+					<a class="nav-link " href="popup.html">Main</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link active" href="#">Settings</a>
+				</li>
+			</ul>
+
+
+			<form action="#" name="form" id="settingsForm">
+				<h3>Parsing Options</h3>
+
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="parse_status" id="parse_disabled" value="parse_disabled" >
+					<label class="form-check-label" for="parse_disabled">
+						Disable - Do not parse
+					</label>
+				</div>
+
+				<div class="form-check" style="padding-bottom: 20px;">
+					<input class="form-check-input" type="radio" name="parse_status" id="parse_enabled" value="parse_enabled">
+					<label class="form-check-label" for="parse_enabled">
+						Parse - whaterever it finds.
+					</label>
+				</div>
+
+				<h3>Follow Options</h3>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="follow_products" id="follow_products" value="1">
+					<label class="form-check-label" for="follow_products">
+						Follow Search Products
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="follow_offers" id="follow_offers" value="1">
+					<label class="form-check-label" for="follow_offers">
+						Follow Sellers Offers
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="follow_stock" value="1" id="follow_stock">
+					<label class="form-check-label" for="follow_stock">
+						Follow Stock <span class="badge badge-warning">Slow As Hell</span>
+					</label>
+				</div>
+
+				<h3>Close Options</h3>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="close_tabs" value="1" id="close_tabs">
+					<label class="form-check-label" for="close_tabs">
+						Close Tabs when parse finish
+					</label>
+				</div>
+
+				<div style="padding-top: 20px">
+					<button id="saveSettingsButton" class="btn btn-primary btn-sm" type="button">Save</button>
+				</div>
+			</form>
+		</div>
+	</body>
+</html>

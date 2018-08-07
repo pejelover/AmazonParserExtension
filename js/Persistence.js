@@ -6,7 +6,7 @@ class Persistence
 		this.database= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 6
+			,version	: 9
 			,stores		:{
 				products:
 				{
@@ -29,11 +29,23 @@ class Persistence
 						{indexName: 'type', keyPath: 'type', objectParameters:{ uniq: false, multiEntry: true } }
 					]
 				}
+				,settings:
+				{
+					keyPath: 'id'
+					,autoincrement: false
+					,indexes	:  []
+				}
 			}
 		});
 
 		this.database.init();
 	}
+
+	init()
+	{
+		return this.database.init();
+	}
+
 
 	updateUrl( url )
 	{
@@ -148,6 +160,7 @@ class Persistence
 			,'parsedDates'	:true
 			,'seller_ids'	:true
 		};
+
 		keys.forEach((k)=>
 		{
 			if( k in arraysKeys )
@@ -233,12 +246,6 @@ class Persistence
 	}
 
 
-	generateHistoricPrices()
-	{
-
-	}
-
-
 	generateRawReport( productsArray )
 	{
 		let keys 		= Object.keys( this.getValidRawReportKeys() );
@@ -253,7 +260,7 @@ class Persistence
 				if( key in product )
 				{
 					let value =  typeof product[key] === 'string'
-						? product[key].trim().replace(/"/g, '""' ).replace(/\t/,' ')
+						? product[key].trim().replace(/"/g, '""' ).replace(/\t/g,' ')
 						: product[ key ];
 
 					row.push( '"'+value+'"' );
@@ -279,45 +286,78 @@ class Persistence
 
 		productsArray.forEach(( product )=>
 		{
-			if( !('stock' in product ) )
-			{
-				return;
-			}
+			if(!( 'title' in product ) )
+				product.title = '';
 
-			product.stock.forEach((stock)=>
+			if(!( 'producer' in product ) )
+				product.producer = '';
+
+
+
+			let row = [];
+
+			try{
+			if( !( 'stock' in product) || product.stock.length === 0 )
 			{
-				let row = [];
 
 				keys.forEach((key)=>
 				{
-					if( key == "asin" )
+					if( key === "producer " || key == "asin" || key === "title" )
 					{
-						row.push( product.asin );
-						return;
+						row.push( this.getValueFromRow( key, product ) );
 					}
-
-					if( key == "qty" )
+					else
 					{
-						if( /^\d+$/.test( stock.qty ) )
-						{
-							row.push( stock.qty );
-						}
-						else if( /Only \d+ left in stock - order soon./.test( stock.qty ) )
-						{
-							row.push(stock.qty.replace(/^.*Only (\d+) left in stock - order soon.*$/,'$1'));
-						}
-						else
-						{
-							row.push( stock.qty );
-						}
-						return;
+						row.push( '""' );
 					}
-
-					row.push( this.getValueFromRow( key, stock ) );
 				});
 
+				console.log(",");
 				s+= row.join('\t')+'\n';
-			});
+			}
+			else
+			{
+				console.log( product.stock.length );
+				product.stock.forEach((stock)=>
+				{
+
+					keys.forEach((key)=>
+					{
+						if( key == "asin" || key == "producer" || key == "title" )
+						{
+							row.push( this.getValueFromRow( key, product ) );
+							return;
+						}
+
+
+						if( key == "qty" )
+						{
+							if( /^\d+$/.test( stock.qty ) )
+							{
+								row.push( stock.qty );
+							}
+							else if( /Only \d+ left in stock - order soon./.test( stock.qty ) )
+							{
+								row.push(stock.qty.replace(/.*Only (\d+) left in stock - order soon.*/,'$1'));
+							}
+							else
+							{
+								row.push( stock.qty );
+							}
+							return;
+						}
+
+						row.push( this.getValueFromRow( key, stock ) );
+					});
+
+					s+= row.join('\t')+'\n';
+				});
+
+			}
+			}catch(e)
+			{
+				console.error('ON catch for stock', e );
+			}
 		});
 
 		return s;
@@ -336,6 +376,7 @@ class Persistence
 			{
 				return;
 			}
+			console.log(".");
 
 			product.offers.forEach((offer)=>
 			{
@@ -343,18 +384,14 @@ class Persistence
 
 				keys.forEach((key)=>
 				{
-					if( key == "asin" )
+					if( key == "asin" || key == "title" )
 					{
-						row.push( product.asin );
-						return;
+						row.push( this.getValueFromRow( key, product ) );
 					}
-					if( key == "title" )
+					else
 					{
-						row.push( product.title );
-						return;
+						row.push( this.getValueFromRow( key, offer ) );
 					}
-
-					row.push( this.getValueFromRow( key, offer ) );
 				});
 
 				s+= row.join('\t')+'\n';
@@ -369,7 +406,7 @@ class Persistence
 		if( key in obj )
 		{
 			return  typeof obj[ key ] === 'string'
-				? obj[ key ].trim().replace(/"/g, '""' ).replace(/\t/,' ')
+				? obj[ key ].trim().replace(/"/g, '""' ).replace(/\s+/g,' ')
 				: obj[ key ];
 		}
 
@@ -382,6 +419,8 @@ class Persistence
 		// Maybe a map for diferent values
 		return {
 			"asin"	: true
+			,"producer" : true
+			,"title"	: true
 			,"seller": true
 			,"time"	: true
 			,"qty": true
@@ -584,5 +623,31 @@ class Persistence
 		let dateStr = date.getFullYear()+'-'+fl( date.getMonth()+1 )+'-'+fl( date.getDate() );
 
 		return dateStr;
+	}
+
+	saveSettings(settings)
+	{
+		this.database.put('settings', settings ).catch((e)=>
+		{
+			console.error( e );
+		});
+	}
+
+	getSettings()
+	{
+		return this.database.get('settings', 1 ).then((result)=>
+		{
+			return result;
+		}).catch((e)=>
+		{
+			return Promise.resolve
+			({
+				"id"	: 1
+				,"parse_status"	: "parse_enabled"
+				,"follow_stock"	: false
+				,"follow_products"	: false
+				,"follow_offers"	: false
+			});
+		});
 	}
 }

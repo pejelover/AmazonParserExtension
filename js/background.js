@@ -1,5 +1,22 @@
 
 var persistence	= new Persistence();
+var settings	= {};
+
+persistence.init()
+.then(()=>
+{
+	return persistence.getSettings();
+})
+.then((sss)=>
+{
+	settings = sss;
+})
+.catch((e)=>
+{
+	console.error( e );
+});
+
+
 var ext			= new Server();
 
 
@@ -8,6 +25,14 @@ ext.addListener('UrlDetected',(url,request,tab_id)=>
 	persistence.updateUrl( request ).then(()=>
 	{
 
+	});
+});
+
+ext.addListener('SettingsChange',()=>
+{
+	persistence.getSettings().then((newSettings)=>
+	{
+		settings = newSettings;
 	});
 });
 

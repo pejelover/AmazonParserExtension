@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function()
 
 		persistence.getProductList().then((products)=>
 		{
+			console.log('All products',products.length );
+
 			switch( type )
 			{
 				case 'Basic Info'	:
@@ -33,13 +35,17 @@ document.addEventListener('DOMContentLoaded', function()
 				case 'historic_stock':
 				{
 					let s = persistence.generateHistoricStockReport( products );
-					download('something.csv',s);
+					let date = new Date();
+					let filename = 'Historic_stock_'+(date.toISOString().substring(0,10) )+'.csv';
+					download(filename,s);
 					break;
 				}
 				case 'historic_price':
 				{
 					let s = persistence.generateHistoricPriceReport( products );
-					download('something.csv',s);
+					let date = new Date();
+					let filename= 'Historic_price_'+(date.toISOString().substring(0,10) )+'.csv';
+					download(filename,s);
 					break;
 				}
 			}
@@ -48,8 +54,13 @@ document.addEventListener('DOMContentLoaded', function()
 
 	function download(filename, text)
 	{
+		console.log( 'Texst length ',text.length );
 		var element = document.createElement('a');
-		element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(text));
+		let downloadableText = encodeURIComponent( text );
+
+		console.log( 'Texst length ',downloadableText.length );
+
+		element.setAttribute('href', 'data:text/csv;charset=utf-8,' +downloadableText );
 		element.setAttribute('download', filename);
 		element.style.display = 'none';
 

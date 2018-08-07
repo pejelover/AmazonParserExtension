@@ -1,10 +1,175 @@
+var settings	= {
+	'follow_products': false
+	,'parse_satus'	: 'parse_enabled'
+	,'follow_offers'	: false
+	,'follow_stock'	: false
+	,'close_tabs'	: false
+};
+var parser	= new AmazonParser();
+var client	= new Client();
+var last_url = window.location.href;
 
-if( window.location.hostname === 'www.amazon.com' )
+
+
+function checkForRobots()
+{
+	return PromiseUtil.resolveAfter( 400 ,1)
+	.then(()=>
+	{
+		let robotsRegex =/Robot\s+Check/i;
+
+		if( robotsRegex.test( document.title ) )
+		{
+			return new Promise((resolve,reject)=>
+			{
+				let interval_id = 0;
+				let lambda		= ()=>
+				{
+					if( !robotsRegex.test( document.title ) )
+					{
+						clearInterval( interval_id );
+						resolve( 1 );
+					}
+				};
+
+				interval_id = setInterval( lambda, 5000 );
+			});
+		}
+
+		return Promise.resolve( true );
+	});
+}
+
+function parseProductPage()
+{
+	checkForRobots().then(()=>
+	{
+		let products = [];
+		let p = parser.getProductFromProductPage();
+
+		if( p )
+			products.push( p );
+
+		let p2 = parser.getProductFromBuyBox();
+
+		if( p2 )
+			products.push( p2 );
+
+		console.log('product page',p, 'buy box product', p2 );
+
+		if( products.length )
+			client.executeOnBackground('ProductsFound',products );
+
+		if( settings.follow_offers )
+		{
+			parser.followPageProductOffers();
+		}
+		else if( parser )
+		{
+
+		}
+	});
+}
+
+function parseCart()
+{
+	checkForRobots().then(()=>
+	{
+		let p = parser.getProductsFromCart();
+
+		console.log( p );
+
+		if( p.length )
+			client.executeOnBackground('ProductsFound',p );
+	})
+	.catch((e)=>
+	{
+		console.error('Error on parse cart', e );
+	});
+}
+
+function parseSearchPage()
+{
+	checkForRobots().then(()=>
+	{
+		let p = parser.parseProductSearchList();
+
+		if( p.length == 0 )
+			p = parser.parseProductSearchList2();
+
+		if( p.length )
+			client.executeOnBackground('ProductsFound', p );
+
+	})
+	.catch((error)=>
+	{
+		console.error('Error on parseSearchPage', error );
+	});
+}
+
+function parseVendorsPage()
+{
+	this.checkForRobots()
+	.then(()=>
+	{
+		let p = parser.getProductFromSellersPage();
+		client.executeOnBackground('ProductsFound',[p] );
+	})
+	.catch((error)=>
+	{
+		console.error('Error on parseVendorsPage', error );
+	});
+}
+
+
+function parse()
 {
 	//var parseOnlyOneVendor	= true;
-	var parser	= new AmazonParser();
-	var client	= new Client();
-	var last_url = window.location.href;
+
+	let page_type = parser.getPageType( window.location.href );
+
+	switch( page_type )
+	{
+		case "PAGE_CART":
+		{
+			parseCart( client );
+			break;
+		}
+		case "PREVIOUS_TO_CART_PAGE":
+		{
+			continueToCart();
+			break;
+		}
+		case "VENDORS_PAGE":
+		{
+			parseVendorsPage();
+			break;
+		}
+		case "PRODUCT_PAGE":
+		{
+			parseProductPage();
+			break;
+		}
+		case "SEARCH_PAGE":
+		{
+			parseSearchPage();
+			break;
+		}
+	}
+}
+
+if(  window.location.hostname === 'www.amazon.com' )
+{
+
+	client.addListener("SettingsArrive",(newSettings)=>
+	{
+		settings	= newSettings;
+
+		if( settings.parse_status === "parse_disabled" )
+			return;
+
+	});
+
 
 	client.executeOnBackground
 	(
@@ -22,99 +187,9 @@ if( window.location.hostname === 'www.amazon.com' )
 				"UrlDetected"
 				,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
 			);
-			parse();
 		}
 	};
 
+	setInterval( checkUrl, 200 );
 	parse();
-
-	setInterval( checkUrl, 700 );
-}
-
-function parse()
-{
-	PromiseUtil.resolveAfter( 400 ,1).then(()=>
-	{
-		let robotsRegex =/Robot\s+Check/i;
-
-		if( robotsRegex.test( document.title ) )
-		{
-			return new Promise((resolve,reject)=>
-				{
-					let interval_id = 0;
-					let lambda		= ()=>
-					{
-						if( !robotsRegex.test( document.title ) )
-						{
-							clearInterval( interval_id );
-							resolve( 1 );
-						}
-					};
-
-					interval_id = setInterval( lambda, 5000 );
-				});
-		}
-
-		return Promise.resolve( true );
-	})
-	.then(()=>
-	{
-		let pageType	= parser.getPageType( window.location.href );
-
-		if( pageType == 'SEARCH_PAGE' )
-		{
-			PromiseUtil.resolveAfter(2000,1).then(()=>
-			{
-				return client.waitTillReady( parser.getSearchListSelector() );
-			})
-			.then(()=>
-			{
-				let p = parser.parseProductSearchList();
-				if( p.length == 0 )
-					p = parser.parseProductSearchList2();
-
-				if( p.length )
-					client.executeOnBackground('ProductsFound', p );
-			});
-		}
-
-		if( pageType == 'VENDORS_PAGE' )
-		{
-			let p = parser.getProductFromSellersPage();
-			client.executeOnBackground('ProductsFound',[p] );
-		}
-
-		if( pageType == 'PRODUCT_PAGE' )
-		{
-			let products = [];
-			let p = parser.getProductFromProductPage();
-			if( p )
-				products.push( p );
-
-			let p2 = parser.getProductFromBuyBox();
-
-			if( p2 )
-				products.push( p2 );
-
-			console.log('product page',p, 'buy box product', p2 );
-
-			if( products.length )
-				client.executeOnBackground('ProductsFound',products );
-		}
-
-		if( pageType == 'CART_PAGE' )
-		{
-			let p = parser.getProductsFromCart();
-
-			console.log( p );
-
-			if( p.length )
-				client.executeOnBackground('ProductsFound',p );
-
-		}
-	})
-	.catch((e)=>
-	{
-		console.log( e );
-	});
 }
