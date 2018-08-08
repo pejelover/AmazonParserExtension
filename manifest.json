@@ -10,6 +10,7 @@
 		  "js/Promise-Utils/PromiseUtils.js"
 		  ,"js/extension-framework/Server.js"
 		  ,"js/db-finger/DatabaseStore.js"
+		  ,"js/AmazonParser/ProductUtils.js"
 		  ,"js/Persistence.js"
 		  ,"js/background.js"
 	  ]
@@ -23,6 +24,7 @@
 			[
 				"js/Promise-Utils/PromiseUtils.js"
 				,"js/AmazonParser/AmazonParser.js"
+				,"js/AmazonParser/ProductUtils.js"
 				,"js/extension-framework/Client.js"
 				,"js/content.js"
 			]

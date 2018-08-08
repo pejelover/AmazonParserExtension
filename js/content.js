@@ -1,3 +1,4 @@
+
 var settings	= {
 	'follow_products': false
 	,'parse_satus'	: 'parse_enabled'
@@ -5,15 +6,14 @@ var settings	= {
 	,'follow_stock'	: false
 	,'close_tabs'	: false
 };
+
 var parser	= new AmazonParser();
 var client	= new Client();
 var last_url = window.location.href;
 
-
-
 function checkForRobots()
 {
-	return PromiseUtil.resolveAfter( 400 ,1)
+	return PromiseUtils.resolveAfter( 400 ,1)
 	.then(()=>
 	{
 		let robotsRegex =/Robot\s+Check/i;
@@ -75,12 +75,26 @@ function parseCart()
 {
 	checkForRobots().then(()=>
 	{
-		let p = parser.getProductsFromCart();
 
-		console.log( p );
+		if( settings.follow_stock )
+		{
+			parser.parseAllTheStockFromCart( client )
+			.then((products)=>
+			{
+				let clean = products.filter( i=> i!= null );
+				if( clean.length )
+					client.executeOnBackground("ProductsFound", clean );
+			});
+		}
+		else
+		{
+			let p = parser.getProductsFromCart();
 
-		if( p.length )
-			client.executeOnBackground('ProductsFound',p );
+			console.log( p );
+
+			if( p.length )
+				client.executeOnBackground('ProductsFound',p );
+		}
 	})
 	.catch((e)=>
 	{
@@ -130,7 +144,7 @@ function parse()
 
 	switch( page_type )
 	{
-		case "PAGE_CART":
+		case "CART_PAGE":
 		{
 			parseCart( client );
 			break;
@@ -158,6 +172,9 @@ function parse()
 	}
 }
 
+
+let checkInterval = null;
+
 if(  window.location.hostname === 'www.amazon.com' )
 {
 
@@ -168,28 +185,32 @@ if(  window.location.hostname === 'www.amazon.com' )
 		if( settings.parse_status === "parse_disabled" )
 			return;
 
+		parse();
+
+		let checkUrl = ()=>
+		{
+			if( last_url !== window.location.href )
+			{
+				last_url = window.location.href;
+				client.executeOnBackground
+				(
+					"UrlDetected"
+					,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
+				);
+			}
+		};
+
+		if( checkInterval === null )
+			setInterval( checkUrl, 300 );
 	});
 
 
 	client.executeOnBackground
 	(
 		"UrlDetected"
-		,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
-	);
-
-	let checkUrl = ()=>
-	{
-		if( last_url !== window.location.href )
-		{
-			last_url = window.location.href;
-			client.executeOnBackground
-			(
-				"UrlDetected"
-				,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
-			);
+		,{
+			url: window.location.href
+			,type: parser.getPageType( window.location.href )
 		}
-	};
-
-	setInterval( checkUrl, 200 );
-	parse();
+	);
 }

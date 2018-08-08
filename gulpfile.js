@@ -9,9 +9,8 @@ var htmlmin			= require('gulp-htmlmin');
 var concat 			= require('gulp-concat');
 var mergeStream		= require('merge-stream');
 //var closureCompiler = require('google-closure-compiler').gulp();
-//var amazonDir		= '/home/pejelover/Projects/AmazonParser';
-var amazonDir		= './node_modules/amazon-parser';
-
+var amazonDir		= '/home/pejelover/Projects/AmazonParser';
+//var amazonDir		= './node_modules/amazon-parser';
 
 gulp.task('default', ['html' ,'css' ,'scripts' ,'images' ,'watch','manifest']);
 
@@ -24,9 +23,8 @@ gulp.task('watch',()=>
 	gulp.watch(['./node_modules/extension-framework/*.js'
 		,'./node_modules/promiseutil/*.js'
 		,'./node_modules/db-finger/DatabaseStore.js'
-		,amazonDir+'/AmazonParser.js'],['scripts']);
+		,amazonDir+'/ProductUtils.js',amazonDir+'/AmazonParser.js'],['scripts']);
 });
-
 
 gulp.task('manifest',()=>
 {

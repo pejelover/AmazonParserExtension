@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded',()=>
 	console.log("hell yeah");
 
 	let persistence = new Persistence();
+
 	let client	= new Client();
 
 	persistence.init()

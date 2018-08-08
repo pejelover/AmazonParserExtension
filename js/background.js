@@ -24,7 +24,7 @@ ext.addListener('UrlDetected',(url,request,tab_id)=>
 {
 	persistence.updateUrl( request ).then(()=>
 	{
-
+		ext.executeOnClients('SettingsArrive', settings );
 	});
 });
 
