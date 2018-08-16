@@ -1,4 +1,4 @@
-
+(function(){
 var settings	= {
 	'follow_products': false
 	,'parse_satus'	: 'parse_enabled'
@@ -67,7 +67,7 @@ function parseProductPage()
 			PromiseUtils.tryNTimes( func, 250, 15 ).catch((e)=>
 			{
 				console.log( e );
-				document.body.setAttribute("style","background-color:red");
+				//document.body.setAttribute("style","background-color:red");
 			});
 		}
 		else if( settings.close_tabs )
@@ -131,7 +131,7 @@ function parseVendorsPage()
 	.then(()=>
 	{
 		let p = parser.productSellersPage.getProduct();
-		client.executeOnBackground("ProductsFound", p );
+		client.executeOnBackground("ProductsFound", [p] );
 		console.log( p );
 
 		if( settings.follow_stock )
@@ -147,7 +147,7 @@ function parseVendorsPage()
 		}
 		else
 		{
-			document.body.setAttribute("style","background-color:red");
+			//document.body.setAttribute("style","background-color:red");
 		}
 	})
 	.catch((error)=>
@@ -234,3 +234,4 @@ if(  window.location.hostname === 'www.amazon.com' )
 		}
 	);
 }
+})();
