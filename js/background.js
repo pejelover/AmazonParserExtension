@@ -1,4 +1,14 @@
 
+window.addEventListener("unhandledrejection", function(err, promise) {
+    // handle error here, for example log
+});
+
+
+
+window.onerror = function(err){
+    console.log(err); // logs all errors
+};
+
 var persistence	= new Persistence();
 var settings	= {};
 
@@ -15,7 +25,6 @@ persistence.init()
 {
 	console.error( e );
 });
-
 
 var ext			= new Server();
 

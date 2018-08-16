@@ -23,7 +23,7 @@ gulp.task('watch',()=>
 	gulp.watch(['./node_modules/extension-framework/*.js'
 		,'./node_modules/promiseutil/*.js'
 		,'./node_modules/db-finger/DatabaseStore.js'
-		,amazonDir+'/ProductUtils.js',amazonDir+'/AmazonParser.js'],['scripts']);
+		,amazonDir+'/*.js'],['scripts']);
 });
 
 gulp.task('manifest',()=>

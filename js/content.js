@@ -44,29 +44,35 @@ function parseProductPage()
 {
 	checkForRobots().then(()=>
 	{
-		let products = [];
-		let p = parser.getProductFromProductPage();
+		let p = parser.productPage.getProduct();
 
 		if( p )
-			products.push( p );
+			client.executeOnBackground('ProductsFound',[ p ]);
 
-		let p2 = parser.getProductFromBuyBox();
-
-		if( p2 )
-			products.push( p2 );
-
-		console.log('product page',p, 'buy box product', p2 );
-
-		if( products.length )
-			client.executeOnBackground('ProductsFound',products );
+		getPromise = ()=>
+		{
+			return PromiseUtils.resolveAfter(500,1 )
+			.then(()=>{
+				return parser.productPage.followProductOffers();
+			});
+		};
 
 		if( settings.follow_offers )
 		{
-			parser.followPageProductOffers();
-		}
-		else if( parser )
-		{
+			let func= ()=> {
+				console.log('Trying another');
+				return parser.productPage.followPageProductOffers();
+			};
 
+			PromiseUtils.tryNTimes( func, 250, 15 ).catch((e)=>
+			{
+				console.log( e );
+				document.body.setAttribute("style","background-color:red");
+			});
+		}
+		else if( settings.close_tabs )
+		{
+			client.closeThisTab();
 		}
 	});
 }
@@ -75,26 +81,21 @@ function parseCart()
 {
 	checkForRobots().then(()=>
 	{
+		let products = parser.cartPage.getProducts();
+		let pWithStock = products.filter( i => i.stock.length > 0 );
+		client.executeOnBackground('ProductsFound',pWithStock );
 
-		if( settings.follow_stock )
+		return parser.cartPage.deleteItemsWithStock()
+		.then(()=>
 		{
-			parser.parseAllTheStockFromCart( client )
-			.then((products)=>
+			return parser.cartPage.parseAllTheStock( client ).then((products)=>
 			{
-				let clean = products.filter( i=> i!= null );
-				if( clean.length )
-					client.executeOnBackground("ProductsFound", clean );
+				let notNullProducts = products.filter( p => p !== null );
+
+				if( products.length )
+					client.executeOnBackground('ProductsFound', notNullProducts );
 			});
-		}
-		else
-		{
-			let p = parser.getProductsFromCart();
-
-			console.log( p );
-
-			if( p.length )
-				client.executeOnBackground('ProductsFound',p );
-		}
+		});
 	})
 	.catch((e)=>
 	{
@@ -106,6 +107,10 @@ function parseSearchPage()
 {
 	checkForRobots().then(()=>
 	{
+		return client.waitTillReady( parser.getSearchListSelector() );
+	})
+	.then(()=>
+	{
 		let p = parser.parseProductSearchList();
 
 		if( p.length == 0 )
@@ -113,7 +118,6 @@ function parseSearchPage()
 
 		if( p.length )
 			client.executeOnBackground('ProductsFound', p );
-
 	})
 	.catch((error)=>
 	{
@@ -126,8 +130,25 @@ function parseVendorsPage()
 	this.checkForRobots()
 	.then(()=>
 	{
-		let p = parser.getProductFromSellersPage();
-		client.executeOnBackground('ProductsFound',[p] );
+		let p = parser.productSellersPage.getProduct();
+		client.executeOnBackground("ProductsFound", p );
+		console.log( p );
+
+		if( settings.follow_stock )
+		{
+			if( settings.sellers_lists )
+			{
+
+			}
+			else if( p.offers.length == 1 )
+			{
+
+			}
+		}
+		else
+		{
+			document.body.setAttribute("style","background-color:red");
+		}
 	})
 	.catch((error)=>
 	{
@@ -151,7 +172,7 @@ function parse()
 		}
 		case "PREVIOUS_TO_CART_PAGE":
 		{
-			continueToCart();
+			//continueToCart();
 			break;
 		}
 		case "VENDORS_PAGE":
@@ -177,7 +198,6 @@ let checkInterval = null;
 
 if(  window.location.hostname === 'www.amazon.com' )
 {
-
 	client.addListener("SettingsArrive",(newSettings)=>
 	{
 		settings	= newSettings;

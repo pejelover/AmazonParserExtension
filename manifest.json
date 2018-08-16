@@ -23,8 +23,11 @@
 			,"js":
 			[
 				"js/Promise-Utils/PromiseUtils.js"
-				,"js/AmazonParser/AmazonParser.js"
 				,"js/AmazonParser/ProductUtils.js"
+				,"js/AmazonParser/ProductPage.js"
+				,"js/AmazonParser/CartPage.js"
+				,"js/AmazonParser/ProductSellersPage.js"
+				,"js/AmazonParser/AmazonParser.js"
 				,"js/extension-framework/Client.js"
 				,"js/content.js"
 			]

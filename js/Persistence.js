@@ -65,14 +65,14 @@ class Persistence
 
 	updateProduct( product )
 	{
-		return this.database.get('products',product.asin ).then(( oldProduct )=>
+		return this.database.get('products' ,product.asin ).then(( oldProduct )=>
 		{
 			if( oldProduct )
-				ProductUtils.mergeProducts(oldProduct, product );
+				this.productUtils.mergeProducts( oldProduct, product );
 
 			try
 			{
-				ProductUtils.cleanProductNormalize( product );
+				this.productUtils.cleanProductNormalize( product );
 			}
 			catch(e)
 			{
@@ -119,7 +119,7 @@ class Persistence
 
 	updateProductLists(list)
 	{
-		return PromiseUtil.runSequential( list, (newProduct,index)=>
+		return PromiseUtils.runSequential( list, (newProduct,index)=>
 		{
 			return this.updateProduct( newProduct );
 		});
@@ -471,15 +471,15 @@ class Persistence
 		return this.database.get('settings', 1 ).then((result)=>
 		{
 			return result;
-		}).catch((e)=>
+		})
+		.catch((e)=>
 		{
-			return Promise.resolve
-			({
-				"id"	: 1
-				,"parse_status"	: "parse_enabled"
-				,"follow_stock"	: false
-				,"follow_products"	: false
-				,"follow_offers"	: false
+			return Promise.resolve({
+				'id'	: 1
+				,'parse_status'	: 'parse_enabled'
+				,'follow_stock'	: false
+				,'follow_products'	: false
+				,'follow_offers'	: false
 			});
 		});
 	}
