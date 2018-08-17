@@ -47,6 +47,9 @@ ext.addListener('SettingsChange',()=>
 
 ext.addListener('ProductsFound',(url,request,tab_id)=>
 {
-	console.log('products found', request );
+	if( Array.isArray( request ) && request.length )
+	{
+		console.log('products found', request );
+	}
 	persistence.updateProductLists( request );
 });

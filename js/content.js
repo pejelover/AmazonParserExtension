@@ -49,13 +49,7 @@ function parseProductPage()
 		if( p )
 			client.executeOnBackground('ProductsFound',[ p ]);
 
-		getPromise = ()=>
-		{
-			return PromiseUtils.resolveAfter(500,1 )
-			.then(()=>{
-				return parser.productPage.followProductOffers();
-			});
-		};
+
 
 		if( settings.follow_offers )
 		{
@@ -69,11 +63,23 @@ function parseProductPage()
 				console.log( e );
 				//document.body.setAttribute("style","background-color:red");
 			});
+			return;
+		}
+		else if( settings.follow_stock )
+		{
+			return PromiseUtils.resolveAfter(500,1 )
+			.then(()=>{
+				parser.productPage.addToCart();
+				//return parser.productPage.followProductOffers();
+			});
 		}
 		else if( settings.close_tabs )
 		{
 			client.closeThisTab();
+			return;
 		}
+
+
 	});
 }
 
@@ -94,6 +100,10 @@ function parseCart()
 
 				if( products.length )
 					client.executeOnBackground('ProductsFound', notNullProducts );
+
+				if( settings.close_tabs )
+					client.closeThisTab();
+
 			});
 		});
 	})
@@ -127,12 +137,17 @@ function parseSearchPage()
 
 function parseVendorsPage()
 {
-	this.checkForRobots()
+	checkForRobots()
 	.then(()=>
 	{
 		let p = parser.productSellersPage.getProduct();
 		client.executeOnBackground("ProductsFound", [p] );
-		console.log( p );
+
+		if( p.offers.length === 1 )
+		{
+			console.log("adding to cart");
+			parser.productSellersPage.addToCartFirstSeller();
+		}
 
 		if( settings.follow_stock )
 		{
@@ -172,7 +187,17 @@ function parse()
 		}
 		case "PREVIOUS_TO_CART_PAGE":
 		{
-			//continueToCart();
+			if( settings.follow_stock )
+			{
+
+				try{
+					document.getElementById('hlb-view-cart-announce').click();
+				}
+				catch(e)
+				{
+					console.log('PTC::BS');
+				}
+			}
 			break;
 		}
 		case "VENDORS_PAGE":

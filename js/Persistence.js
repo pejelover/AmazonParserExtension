@@ -7,7 +7,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 9
+			,version	: 10
 			,stores		:{
 				products:
 				{
@@ -19,6 +19,7 @@ class Persistence
 						,{ indexName: 'sellers'	,keyPath:'sellers'	,objectParameters: { uniq: false ,multiEntry: true} }
 						,{ indexName: 'search'	,keyPath:'search'	,objectParameters: { uniq: false ,multiEntry: true} }
 						,{ indexName: 'parsedDates'	,keyPath:'parsedDates', objectParameters: { uniq: false ,multiEntry: true} }
+						,{ indexName: 'parsed'	,keyPath:'parsed', objectParameters: { uniq: false ,multiEntry: false} }
 					]
 				}
 				,urls:
@@ -241,16 +242,32 @@ class Persistence
 							return;
 						}
 
+						let regex_2 = /This seller has only \d+ of these available. To see if more are available from another seller, go to the product detail page./;
+						let regex_2_replace = /This seller has only (\d+) of these available. To see if more are available from another seller, go to the product detail page./;
+						let regex_3 = /Only \d+ left in stock (more on the way)./;
+						let regex_3_replace = /Only (\d+) left in stock (more on the way)./;
 
 						if( key == "qty" )
 						{
-							if( /^\d+$/.test( stock.qty ) )
+							if( stock.qty === 'Currently unavailable.' )
+							{
+								row.push( 0 );
+							}
+							else if( /^\d+$/.test( stock.qty ) )
 							{
 								row.push( stock.qty );
 							}
 							else if( /Only \d+ left in stock - order soon./.test( stock.qty ) )
 							{
 								row.push(stock.qty.replace(/.*Only (\d+) left in stock - order soon.*/,'$1'));
+							}
+							else if( regex_2.test( stock.qty ) )
+							{
+								row.push(stock.qty.replace( regex_2_replace, '$1' ) );
+							}
+							else if( regex_3.test( stock.qty ) )
+							{
+								row.push(stock.qty.replace( regex_3_replace, '$1' ) );
 							}
 							else
 							{
@@ -332,10 +349,10 @@ class Persistence
 		return {
 			"asin"	: true
 			,"producer" : true
+			,"qty": true
 			,"title"	: true
 			,"seller": true
 			,"time"	: true
-			,"qty": true
 			,"seller_id": true
 			,"seller_url": true
 			,"smid"	: true
@@ -365,11 +382,15 @@ class Persistence
 			,url:true
 			,producer: true
 			,title	: true
-			,stock	: true
+			//,stock	: true
 			,no_offers	: true
 			,no_offers_text: true
 			,rating	: true
 			,number_of_ratings: true
+			,shipping: true
+			,parsed: true
+			,left: true
+			,fullfilled_by: true
 		};
 		/*
 		return {
