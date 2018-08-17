@@ -50,6 +50,6 @@ ext.addListener('ProductsFound',(url,request,tab_id)=>
 	if( Array.isArray( request ) && request.length )
 	{
 		console.log('products found', request );
+		persistence.updateProductLists( request );
 	}
-	persistence.updateProductLists( request );
 });
