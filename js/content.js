@@ -5,6 +5,7 @@ var settings	= {
 	,'follow_offers'	: false
 	,'follow_stock'	: false
 	,'close_tabs'	: false
+	,'add_to_cart_product_page'	: true
 };
 
 var parser	= new AmazonParser();
@@ -65,7 +66,11 @@ function parseProductPage()
 			});
 			return;
 		}
-		else if( settings.follow_stock )
+		else if( settings.add_to_cart_product_page )
+		{
+			parser.productPage.addToCart();
+		}
+		else  if( settings.follow_stock )
 		{
 			return PromiseUtils.resolveAfter(500,1 )
 			.then(()=>{
@@ -89,7 +94,9 @@ function parseCart()
 	{
 		let products = parser.cartPage.getProducts();
 		let pWithStock = products.filter( i => i.stock.length > 0 );
-		client.executeOnBackground('ProductsFound',pWithStock );
+
+		if( pWithStock.length )
+			client.executeOnBackground('ProductsFound',pWithStock );
 
 		return parser.cartPage.deleteItemsWithStock()
 		.then(()=>
@@ -98,7 +105,7 @@ function parseCart()
 			{
 				let notNullProducts = products.filter( p => p !== null );
 
-				if( products.length )
+				if( notNullProducts.length )
 					client.executeOnBackground('ProductsFound', notNullProducts );
 
 				if( settings.close_tabs )

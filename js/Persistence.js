@@ -126,9 +126,6 @@ class Persistence
 		});
 	}
 
-
-
-
 	getProductList( options )
 	{
 		return this.database.getAll('products',{});
@@ -157,7 +154,6 @@ class Persistence
 
 		return this.database.getAll('products', options );
 	}
-
 
 	generateRawReport( productsArray )
 	{
@@ -230,9 +226,9 @@ class Persistence
 			}
 			else
 			{
-				console.log( product.stock.length );
 				product.stock.forEach((stock)=>
 				{
+					row = [];
 
 					keys.forEach((key)=>
 					{
@@ -286,6 +282,7 @@ class Persistence
 			}catch(e)
 			{
 				console.error('ON catch for stock', e );
+				s+='\n';
 			}
 		});
 
@@ -383,14 +380,14 @@ class Persistence
 			,producer: true
 			,title	: true
 			//,stock	: true
-			,no_offers	: true
-			,no_offers_text: true
+			//,no_offers	: true
+			//,no_offers_text: true
 			,rating	: true
 			,number_of_ratings: true
 			,shipping: true
 			,parsed: true
-			,left: true
-			,fullfilled_by: true
+			//,left: true
+			//,fullfilled_by: true
 		};
 		/*
 		return {
@@ -469,8 +466,6 @@ class Persistence
 			*/
 	}
 
-
-
 	getDateString( date )
 	{
 		let fl = (i)=> i<10 ? '0'+i : i;
@@ -501,6 +496,7 @@ class Persistence
 				,'follow_stock'	: false
 				,'follow_products'	: false
 				,'follow_offers'	: false
+				,'add_to_cart_product_page' : false
 			});
 		});
 	}

@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded',()=>
 			,'follow_offers'
 			,'follow_stock'
 			,'close_tabs'
+			,'add_to_cart_product_page'
 		];
 
 		ids.forEach(( i ) =>{
