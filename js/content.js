@@ -6,7 +6,9 @@ var settings	= {
 	,'follow_stock'	: false
 	,'close_tabs'	: false
 	,'add_to_cart_product_page'	: true
+	,'close_if_stock_is_found' : true
 };
+
 
 var parser	= new AmazonParser();
 var client	= new Client();
@@ -52,7 +54,12 @@ function parseProductPage()
 
 
 
-		if( settings.follow_offers )
+		if( p.stock.length && settings.close_if_stock_is_found )
+		{
+			client.closeThisTab();
+			return;
+		}
+		else if( settings.follow_offers )
 		{
 			let func= ()=> {
 				console.log('Trying another');
@@ -233,6 +240,7 @@ if(  window.location.hostname === 'www.amazon.com' )
 	client.addListener("SettingsArrive",(newSettings)=>
 	{
 		settings	= newSettings;
+		settings.close_if_stock_is_found = true;
 
 		if( settings.parse_status === "parse_disabled" )
 			return;
