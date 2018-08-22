@@ -21,6 +21,7 @@ var default_settings = {
 
 
 	}
+	,product_sellers_preferences: {}
 };
 
 
