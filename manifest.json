@@ -11,6 +11,7 @@
 		  ,"js/extension-framework/Server.js"
 		  ,"js/db-finger/DatabaseStore.js"
 		  ,"js/AmazonParser/ProductUtils.js"
+		  ,"js/defaultSettings.js"
 		  ,"js/Persistence.js"
 		  ,"js/background.js"
 	  ]

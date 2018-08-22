@@ -20,7 +20,6 @@
 	,page_sellers:
 	{
 
-
 	}
 };
 
@@ -134,7 +133,7 @@ function parseCart()
 				if( notNullProducts.length )
 					client.executeOnBackground('ProductsFound', notNullProducts );
 
-				if( settings.close_tabs )
+				if( settings.page_cart.close_tab )
 					client.closeThisTab();
 			});
 		}

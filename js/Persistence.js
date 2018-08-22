@@ -238,10 +238,21 @@ class Persistence
 							return;
 						}
 
+
+						let msg = /The item quantities were not updated since you've exceeded the maximum number of items that can be stored in the Shopping Cart/;
+
+						if( msg.test( stock.qty) )
+						{
+							row.push( 'Error > 990');
+							return;
+						}
+
 						let regex_2 = /This seller has only \d+ of these available. To see if more are available from another seller, go to the product detail page./;
 						let regex_2_replace = /This seller has only (\d+) of these available. To see if more are available from another seller, go to the product detail page./;
-						let regex_3 = /Only \d+ left in stock (more on the way)./;
-						let regex_3_replace = /Only (\d+) left in stock (more on the way)./;
+						let regex_3 = /Only \d+ left in stock \(more on the way\)./;
+								       //Only 1 left in stock (more on the way).
+
+						let regex_3_replace = /Only (\d+) left in stock \(more on the way\)/;
 
 						if( key == "qty" )
 						{
@@ -264,6 +275,7 @@ class Persistence
 							else if( regex_3.test( stock.qty ) )
 							{
 								row.push(stock.qty.replace( regex_3_replace, '$1' ) );
+
 							}
 							else
 							{
@@ -496,14 +508,8 @@ class Persistence
 		})
 		.catch((e)=>
 		{
-			return Promise.resolve({
-				'id'	: 1
-				,'parse_status'	: 'parse_enabled'
-				,'follow_stock'	: false
-				,'follow_products'	: false
-				,'follow_offers'	: false
-				,'add_to_cart_product_page' : false
-			});
+			console.log("Error getting settings"+e.msg );
+			return default_settings;
 		});
 	}
 }
