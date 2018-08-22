@@ -72,6 +72,9 @@ gulp.task('scripts', function()
 	let db		= gulp.src(['./node_modules/db-finger/DatabaseStore.js'] )
 		.pipe( gulp.dest('./dist/js/db-finger/' ) );
 
-	return mergeStream( extension, utils, scripts, ap, db );
+	let diabetes =  gulp.src(['./node_modules/diabetes/*.js'])
+		.pipe( gulp.dest('./dist/js/Diabetes/' ) );
+
+	return mergeStream( extension, utils, scripts, ap, db, diabetes );
 });
 

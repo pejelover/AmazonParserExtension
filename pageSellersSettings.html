@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+
+		<script src="js/Promise-Utils/PromiseUtils.js"></script>
+		<script src="js/extension-framework/Client.js"></script>
+		<script src="js/AmazonParser/ProductUtils.js"></script>
+		<script src="js/db-finger/DatabaseStore.js"></script>
+		<script src="js/Persistence.js"></script>
+		<script src="js/popupSettings.js"></script>
+		<style>
+			#main_container
+			{
+				min-width: 400px;
+				padding: 15px;
+			}
+			h3
+			{
+				font-size: 1.4rem;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="main_container">
+
+			<ul class="nav">
+				<li class="nav-item">
+					<a class="nav-link " href="popup.html">Main</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link active" href="#">Settings</a>
+				</li>
+			</ul>
+
+
+			<form action="#" name="form" id="settingsForm">
+				<h3>Sellers Page Settings</h3>
+
+
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="action" value="do_nothing" id="do_nothing">
+					<label class="form-check-label" for="do_nothing">
+						Do nothing
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="action" value="close_tab" id="close_tab">
+					<label class="form-check-label" for="product_page_close_tab">
+						Close Tab
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="action" value="add_cart_first" id="add_cart_first">
+					<label class="form-check-label" for="product_page_close_tab">
+						Add cart first
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="action" value="add_cart_cheapest" id="add_cart_cheapest" >
+					<label class="form-check-label" for="product_page_add_to_cart">
+						Add cart Cheapest
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="action" value="add_cart_prime" id="add_cart_prime">
+					<label class="form-check-label" for="add_cart_prime">
+						Add Cart Prime
+					</label>
+				</div>
+
+				<label for="product_sellers_config">
+				<textarea id="product_sellers_config"></textarea>
+
+				<div style="padding-top: 20px">
+					<button id="saveSettingsButton" class="btn btn-primary btn-sm" type="button">Save</button>
+				</div>
+			</form>
+		</div>
+	</body>
+</html>

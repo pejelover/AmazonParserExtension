@@ -11,9 +11,7 @@
 		<script src="js/Persistence.js"></script>
 		<script src="js/defaultSettings.js"></script>
 		<script src="js/Diabetes/Utils.js"></script>
-		<script src="js/popupSettings.js"></script>
-
-
+		<script src="js/pageProductSettings.js"></script>
 		<style>
 			#main_container
 			{
@@ -34,40 +32,41 @@
 					<a class="nav-link " href="popup.html">Main</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link active" href="#">Settings</a>
+					<a class="nav-link active" href="popupSettings.html">Settings</a>
 				</li>
 			</ul>
 
-			<hr>
-			<ul>
-				<li>
-					<a href="pageProductSettings.html">Product Page Settings</a>
-				</li>
-				<li>
-					<a href="pageCartSettings.html">Cart settings</a>
-				</li>
-				<li>
-					<a href="pagePrevCartSettings.html">Previous to cart Settings</a>
-				</li>
-				<li>
-					<a href="pageSellersSettings.html">Sellers Settings</a>
-				</li>
-			</ul>
 
-			<hr>
+			<form action="#" name="form" id="pageProductSettingsForm">
 
-			<form action="#" name="form" id="popupSettingsForm">
+				<h3>Product Page Options</h3>
 
 				<div class="form-check">
-					<input class="form-check-input" type="radio" name="parse_status" value="parse_enabled" id="parse_enabled">
-					<label class="form-check-label" for="parse_enabled">
-						Parsing Enable
+					<input class="form-check-input" type="checkbox" name="close_tab" value="1" id="close_tab">
+					<label class="form-check-label" for="close_tab">
+						Close tab
 					</label>
 				</div>
+
 				<div class="form-check">
-					<input class="form-check-input" type="radio" name="parse_status" value="parse_disabled" id="parse_disabled">
-					<label class="form-check-label" for="parse_disabled">
-						All Parsers Disabled
+					<input class="form-check-input" type="checkbox" name="add_to_cart" id="add_to_cart" value="1">
+					<label class="form-check-label" for="add_to_cart">
+						Add To Cart
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="close_if_stock_found" value="1" id="close_if_stock_found">
+					<label class="form-check-label" for="close_if_stock_found">
+						Close if stock is found
+					</label>
+				</div>
+
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="goto_sellers_pages" id="goto_sellers_pages" value="1">
+					<label class="form-check-label" for="goto_sellers_pages">
+						Go to Sellers Page
 					</label>
 				</div>
 

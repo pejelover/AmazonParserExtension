@@ -1,3 +1,4 @@
+
 var settings = default_settings;
 
 document.addEventListener('DOMContentLoaded',()=>
@@ -16,17 +17,18 @@ document.addEventListener('DOMContentLoaded',()=>
 		if( savedSettings )
 			settings = savedSettings;
 
-		console.log( savedSettings );
+		let form = Utils.getById('pageCartSettingsForm');
 
-		let form = Utils.getById('popupSettingsForm');
-
-		Utils.object2form( settings, form );
+		Utils.object2form( settings.page_product, form );
 
 		document.getElementById('saveSettingsButton').addEventListener('click',()=>
 		{
-			let parseStatus = Utils.form2Object( form );
+			let cartSettings = Utils.form2Object( form );
 
-			settings.parse_status	 = parseStatus.parse_status;
+			cartSettings.parse_stock = 'parse_stock' in cartSettings;
+			cartSettings.close_tab	= 'close_tab' in cartSettings;
+
+			settings.page_cart = cartSettings;
 
 			persistence.saveSettings( settings ).then(()=>
 			{

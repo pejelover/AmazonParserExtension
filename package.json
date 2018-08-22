@@ -3,6 +3,7 @@
     "amazon-parser": "^1.0.7",
     "db-finger": "^1.0.5",
     "del": "^3.0.0",
+    "diabetes": "^1.0.4",
     "extension-framework": "^1.0.6",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^5.0.0",

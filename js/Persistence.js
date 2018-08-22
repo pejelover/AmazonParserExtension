@@ -169,8 +169,8 @@ class Persistence
 				if( key in product )
 				{
 					let value =  typeof product[key] === 'string'
-						? product[key].trim().replace(/"/g, '""' ).replace(/\t/g,' ')
-						: product[ key ];
+						? product[key].replace(/"/g, '""' ).replace(/[\s\t]+/g,' ').trim()
+						: JSON.stringify( product[ key ] );
 
 					row.push( '"'+value+'"' );
 				}
@@ -486,6 +486,12 @@ class Persistence
 	{
 		return this.database.get('settings', 1 ).then((result)=>
 		{
+			for(let  i in default_settings )
+			{
+				if( !( i in result ) )
+					result[ i ] = default_settings[ i ];
+			}
+
 			return result;
 		})
 		.catch((e)=>
