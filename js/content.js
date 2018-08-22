@@ -69,16 +69,48 @@ function parseProductPage()
 		,goto_sellers_pages	: false
 		} */
 
-
 		let p = parser.productPage.getProduct();
 
 		if( p )
 			client.executeOnBackground('ProductsFound',[ p ]);
 
 
-		if( p.stock.length && settings.page_product.close_if_stock_found )
+		let seller_id = null;
+
+		if( p.stock.length && 'seller_id' in p.stock[0] )
+		{
+			seller_id = p.stock[0].seller_id;
+		}
+
+		if( p.offers.length && 'seller_id' in p.offers[0] )
+		{
+			seller_id = p.offers[0].seller_id;
+		}
+
+		let seller_match = true;
+
+		if('product_sellers_preferences' in settings && settings.product_sellers_preferences )
+		{
+			if( p.asin in settings.product_sellers_preferences )
+			{
+				if( seller_id !== settings.product_sellers_preferences[ p.asin ][ 0 ] )
+				{
+					seller_match = false;
+				}
+			}
+		}
+
+
+
+
+		if( p.stock.length && settings.page_product.close_if_stock_found && seller_match)
 		{
 			client.closeThisTab();
+			return;
+		}
+		else if( settings.page_product.add_to_cart && seller_match )
+		{
+			parser.productPage.addToCart();
 			return;
 		}
 		else if( settings.page_product.goto_sellers_pages )
@@ -94,10 +126,6 @@ function parseProductPage()
 				//document.body.setAttribute("style","background-color:red");
 			});
 			return;
-		}
-		else if( settings.page_product.add_to_cart )
-		{
-			parser.productPage.addToCart();
 		}
 		else if( settings.page_product.close_tab )
 		{
@@ -174,27 +202,23 @@ function parseVendorsPage()
 		let p = parser.productSellersPage.getProduct();
 		client.executeOnBackground("ProductsFound", [p] );
 
-		if( p.offers.length === 1 )
+		return PromiseUtils.resolveAfter( 1, 2000 )
+		.then(()=>
 		{
-			console.log("adding to cart");
-			parser.productSellersPage.addToCartFirstSeller();
-		}
-
-		if( settings.follow_stock )
-		{
-			if( settings.sellers_lists )
+			if( p.offers.length === 1 )
 			{
-
+				console.log("adding to cart");
+				parser.productSellersPage.addToCartFirstSeller();
 			}
-			else if( p.offers.length == 1 )
+			else if( p.asin && settings.product_sellers_preferences  )
 			{
-
+				parser.productSellersPage.addToCartBySellerId( settings.product_sellers_preferences[ p.asin ][ 0 ] );
 			}
-		}
-		else
-		{
-			//document.body.setAttribute("style","background-color:red");
-		}
+			else
+			{
+				parser.productSellersPage.addToCartFirstSeller();
+			}
+		});
 	})
 	.catch((error)=>
 	{
