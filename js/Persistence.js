@@ -232,7 +232,7 @@ class Persistence
 
 					keys.forEach((key)=>
 					{
-						if( key == "asin" || key == "producer" || key == "title" )
+						if( key == "asin" || key == "producer" || key == "title" || key == "url" )
 						{
 							row.push( this.getValueFromRow( key, product ) );
 							return;
@@ -241,7 +241,7 @@ class Persistence
 
 						let msg = /The item quantities were not updated since you've exceeded the maximum number of items that can be stored in the Shopping Cart/;
 
-						if( msg.test( stock.qty) )
+						if( key === "qty" && msg.test( stock.qty) )
 						{
 							row.push( 'Error > 990');
 							return;
@@ -357,6 +357,7 @@ class Persistence
 		// Maybe a map for diferent values
 		return {
 			"asin"	: true
+			,"url"	: true
 			,"producer" : true
 			,"qty": true
 			,"title"	: true
