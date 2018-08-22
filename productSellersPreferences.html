@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+
+		<script src="js/Promise-Utils/PromiseUtils.js"></script>
+		<script src="js/extension-framework/Client.js"></script>
+		<script src="js/AmazonParser/ProductUtils.js"></script>
+		<script src="js/db-finger/DatabaseStore.js"></script>
+		<script src="js/Persistence.js"></script>
+		<script src="js/defaultSettings.js"></script>
+		<script src="js/Diabetes/Utils.js"></script>
+		<script src="js/productSellersPreferences.js"></script>
+		<style>
+			#main_container
+			{
+				min-width: 400px;
+				padding: 15px;
+			}
+			h3
+			{
+				font-size: 1.4rem;
+			}
+			textarea
+			{
+				min-width: 350px;
+				height: 	300px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="main_container">
+
+			<ul class="nav">
+				<li class="nav-item">
+					<a class="nav-link " href="popup.html">Main</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link active" href="popupSettings.html">Settings</a>
+				</li>
+			</ul>
+
+
+			<form action="#" name="form" id="productSellersPreferencesForm">
+
+				<h3>Product Page Options</h3>
+
+				<div class="form-check">
+					<label class="form-check-label" for="productSellersPreferences"> Asin:seller id </label>
+				</div>
+
+				<textarea id="productSellersPreferences" name="product_sellers_preferences"></textarea>
+
+				<div style="padding-top: 20px">
+					<button id="saveSettingsButton" class="btn btn-primary btn-sm" type="button">Save</button>
+				</div>
+			</form>
+		</div>
+	</body>
+</html>
