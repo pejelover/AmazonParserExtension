@@ -1,4 +1,3 @@
-
 class Persistence
 {
 	constructor()
@@ -50,7 +49,7 @@ class Persistence
 			}
 		});
 
-		this.database.init();
+		//this.database.init();
 	}
 
 	init()
@@ -101,7 +100,7 @@ class Persistence
 			return this.database.put('products', product );
 		})
 		.catch((e)=>
-			{
+		{
 			//This implentation sucks, can occour a data loss
 			//XXX do some refactoring here and there ^|
 			//console.error("product not found", e );
@@ -126,9 +125,23 @@ class Persistence
 		});
 	}
 
-	getProductList( options )
+	getProductList( date1, date2 )
 	{
-		return this.database.getAll('products',{});
+		let options = {};
+
+		//if( date1 )
+		//{
+		//	options.index = 'parsedDates';
+		//	options['>='] = date1.toISOString();
+		//}
+
+		//if( date2 )
+		//{
+		//	options.index = 'parsedDates';
+		//	options['<='] = date2.toISOString();
+		//}
+
+		return this.database.getAll('products', options );
 	}
 
 	getProductListBySearch( search )
@@ -186,7 +199,120 @@ class Persistence
 		return s;
 	}
 
-	generateHistoricStockReport( productsArray )
+	generateHistoricReportByDays( productsArray, date1, date2 )
+	{
+		let keys 		= Object.keys( this.getValidHistoricStockKeys() );
+
+		let s = keys.join('\t')+'\n';
+		let days	= {};
+
+		productsArray.forEach(( product )=>
+		{
+			if(!( 'title' in product ) )
+				product.title = '';
+
+			if(!( 'producer' in product ) )
+				product.producer = '';
+
+			let row = [];
+
+			try{
+			if( !( 'stock' in product) || product.stock.length === 0 )
+			{
+
+				keys.forEach((key)=>
+				{
+					if( key === "producer " || key == "asin" || key === "title" )
+					{
+						row.push( this.getValueFromRow( key, product ) );
+					}
+					else
+					{
+						row.push( '""' );
+					}
+				});
+
+				console.log(",");
+				s+= row.join('\t')+'\n';
+			}
+			else
+			{
+				product.stock.forEach((stock)=>
+				{
+					row = [];
+
+					keys.forEach((key)=>
+					{
+						if( key == "asin" || key == "producer" || key == "title" || key == "url" )
+						{
+							row.push( this.getValueFromRow( key, product ) );
+							return;
+						}
+
+
+						let msg = /The item quantities were not updated since you've exceeded the maximum number of items that can be stored in the Shopping Cart/;
+
+						if( key === "qty" && msg.test( stock.qty) )
+						{
+							row.push( 'Error > 990');
+							return;
+						}
+
+						let regex_2 = /This seller has only \d+ of these available. To see if more are available from another seller, go to the product detail page./;
+						let regex_2_replace = /This seller has only (\d+) of these available. To see if more are available from another seller, go to the product detail page./;
+						let regex_3 = /Only \d+ left in stock \(more on the way\)./;
+								       //Only 1 left in stock (more on the way).
+
+						let regex_3_replace = /Only (\d+) left in stock \(more on the way\)/;
+
+						if( key == "qty" )
+						{
+							if( stock.qty === 'Currently unavailable.' )
+							{
+								row.push( 0 );
+							}
+							else if( /^\d+$/.test( stock.qty ) )
+							{
+								row.push( stock.qty );
+							}
+							else if( /Only \d+ left in stock - order soon./.test( stock.qty ) )
+							{
+								row.push(stock.qty.replace(/.*Only (\d+) left in stock - order soon.*/,'$1'));
+							}
+							else if( regex_2.test( stock.qty ) )
+							{
+								row.push(stock.qty.replace( regex_2_replace, '$1' ) );
+							}
+							else if( regex_3.test( stock.qty ) )
+							{
+								row.push(stock.qty.replace( regex_3_replace, '$1' ) );
+
+							}
+							else
+							{
+								row.push( stock.qty );
+							}
+							return;
+						}
+
+						row.push( this.getValueFromRow( key, stock ) );
+					});
+
+					s+= row.join('\t')+'\n';
+				});
+
+			}
+			}catch(e)
+			{
+				console.error('ON catch for stock', e );
+				s+='\n';
+			}
+		});
+
+		return s;
+	}
+
+	generateHistoricStockReport( productsArray, date1String, date2String )
 	{
 		let keys 		= Object.keys( this.getValidHistoricStockKeys() );
 
@@ -230,8 +356,21 @@ class Persistence
 				{
 					row = [];
 
+					//if( (date1String || date2String )  && !('time' in stock ) )
+					//	return;
+
+					//if( date1String && stock.time < date1String )
+					//	return;
+
+					//if( date2String && stock.time > date2String )
+					//{
+					//	return;
+					//}
+
 					keys.forEach((key)=>
 					{
+
+
 						if( key == "asin" || key == "producer" || key == "title" || key == "url" )
 						{
 							row.push( this.getValueFromRow( key, product ) );
@@ -382,6 +521,14 @@ class Persistence
 			,"fullfilled_by"	: true
 			,"title"		: true
 		};
+	}
+
+
+	getDownloadHref( array )
+	{
+		var blob = new Blob([JSON.stringify( array, null, 2)], {type : 'application/json'});
+		let objectURL = URL.createObjectURL( blob );
+		return objectURL;
 	}
 
 	getValidRawReportKeys()
