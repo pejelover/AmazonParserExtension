@@ -100,14 +100,15 @@ class Persistence
 
 			return this.database.put('products', product );
 		})
-		.catch((e)=>
-			{
-			//This implentation sucks, can occour a data loss
-			//XXX do some refactoring here and there ^|
-			//console.error("product not found", e );
-				return Promise.resolve( product );
-			//return this.put('products', product );
+-               .catch((e)=>
+-                       {
+-                       //This implentation sucks, can occour a data loss
+-                       //XXX do some refactoring here and there ^|
+-                       //console.error("product not found", e );
+-                               return Promise.resolve( product );
+-                       //return this.put('products', product );
 		});
+
 	}
 
 	sortProductList( list )
