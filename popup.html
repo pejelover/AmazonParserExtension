@@ -4,6 +4,7 @@
 		 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<link href="css/bootstrap.min.css" rel="stylesheet">
 		<script src="js/popup.js"></script>
+		<script src="js/Diabetes/Utils.js"></script>
 		<script src="js/db-finger/DatabaseStore.js"></script>
 		<script src="js/AmazonParser/ProductUtils.js"></script>
 		<script src="js/Persistence.js"></script>
@@ -32,22 +33,24 @@
 					<option value="producer">Producer</option>
 					<option value="Seller">Seller</option>
 				</select>
-
+			</div>
+			<div class="input-group">
 				<div class="input-group-append">
-					<input type="text" class="form-control" placeholder="" name="param1">
+					<input type="date" class="form-control" placeholder="date1" name="date1" id="date1">
 				</div>
 
 				<div class="input-group-append">
-					<input type="text" class="form-control" placeholder="" name="param2">
+					<input type="date" class="form-control" placeholder="date2" name="date2" id="date2">
 				</div>
 			</div>
 
 			<div class="input-group">
 				<select class="custom-select" id="report-type" aria-label="Select report type to download">
-					<option value="Basic Info" selected>Basic Info</option>
+					<option value="historic_stock" selected>Historic Stock</option>
+					<option value="Basic Info">Basic Info</option>
 					<option value="products_without_stock">Products without a registered stock</option>
-					<option value="historic_stock">Historic Stock</option>
 					<option value="historic_price">Historic Price</option>
+					<option value="backup">STOCK</option>
 				</select>
 				<div class="input-group-append">
 					<button id="downloadButton" class="btn btn-outline-secondary" type="button">Download</button>
