@@ -249,51 +249,12 @@ class Persistence
 							return;
 						}
 
-
-						let msg = /The item quantities were not updated since you've exceeded the maximum number of items that can be stored in the Shopping Cart/;
-
-						if( key === "qty" && msg.test( stock.qty) )
+						if( key === "qty" )
 						{
-							row.push( 'Error > 990');
+							row.push( this.productUtils.getQty( stock.qty ) );
 							return;
 						}
 
-						let regex_2 = /This seller has only \d+ of these available. To see if more are available from another seller, go to the product detail page./;
-						let regex_2_replace = /This seller has only (\d+) of these available. To see if more are available from another seller, go to the product detail page./;
-						let regex_3 = /Only \d+ left in stock \(more on the way\)./;
-								       //Only 1 left in stock (more on the way).
-
-						let regex_3_replace = /Only (\d+) left in stock \(more on the way\)/;
-
-						if( key == "qty" )
-						{
-							if( stock.qty === 'Currently unavailable.' )
-							{
-								row.push( 0 );
-							}
-							else if( /^\d+$/.test( stock.qty ) )
-							{
-								row.push( stock.qty );
-							}
-							else if( /Only \d+ left in stock - order soon./.test( stock.qty ) )
-							{
-								row.push(stock.qty.replace(/.*Only (\d+) left in stock - order soon.*/,'$1'));
-							}
-							else if( regex_2.test( stock.qty ) )
-							{
-								row.push(stock.qty.replace( regex_2_replace, '$1' ) );
-							}
-							else if( regex_3.test( stock.qty ) )
-							{
-								row.push(stock.qty.replace( regex_3_replace, '$1' ) );
-
-							}
-							else
-							{
-								row.push( stock.qty );
-							}
-							return;
-						}
 
 						row.push( this.getValueFromRow( key, stock ) );
 					});
@@ -378,48 +339,9 @@ class Persistence
 						}
 
 
-						let msg = /The item quantities were not updated since you've exceeded the maximum number of items that can be stored in the Shopping Cart/;
-
-						if( key === "qty" && msg.test( stock.qty) )
+						if( key === "qty" )
 						{
-							row.push( 'Error > 990');
-							return;
-						}
-
-						let regex_2 = /This seller has only \d+ of these available. To see if more are available from another seller, go to the product detail page./;
-						let regex_2_replace = /This seller has only (\d+) of these available. To see if more are available from another seller, go to the product detail page./;
-						let regex_3 = /Only \d+ left in stock \(more on the way\)./;
-								       //Only 1 left in stock (more on the way).
-
-						let regex_3_replace = /Only (\d+) left in stock \(more on the way\)/;
-
-						if( key == "qty" )
-						{
-							if( stock.qty === 'Currently unavailable.' )
-							{
-								row.push( 0 );
-							}
-							else if( /^\d+$/.test( stock.qty ) )
-							{
-								row.push( stock.qty );
-							}
-							else if( /Only \d+ left in stock - order soon./.test( stock.qty ) )
-							{
-								row.push(stock.qty.replace(/.*Only (\d+) left in stock - order soon.*/,'$1'));
-							}
-							else if( regex_2.test( stock.qty ) )
-							{
-								row.push(stock.qty.replace( regex_2_replace, '$1' ) );
-							}
-							else if( regex_3.test( stock.qty ) )
-							{
-								row.push(stock.qty.replace( regex_3_replace, '$1' ) );
-
-							}
-							else
-							{
-								row.push( stock.qty );
-							}
+							row.push( this.productUtils.getQty( stock.qty  ));
 							return;
 						}
 
@@ -659,5 +581,150 @@ class Persistence
 			console.log("Error getting settings"+e.msg );
 			return default_settings;
 		});
+	}
+
+
+
+	getStockReport2( productsArray )
+	{
+		let array = this.getStockReportArray( productsArray );
+		let s = '';
+		array.forEach(i=>
+		{
+			s+= i.join(",")+"\n";
+		});
+		return s;
+	}
+
+	getStockReportArray( productsArray )
+	{
+		let reportRows = [];
+		productsArray.forEach((product)=>
+		{
+			if( !( 'stock' in product ) || product.stock.length == 0 )
+				return null;
+
+			product.stock.forEach((stock)=>
+			{
+				if(!('time' in stock && 'seller_id' in stock ) )
+					return;
+
+				if( this.productUtils.getQty( stock.qty ) == 'Error > 990' )
+					return;
+
+
+				let row = { asin: product.asin };
+
+				for(let i in stock )
+				{
+					row[ i ] =  stock[ i ];
+				}
+
+				let date = new Date( stock.time );
+				let date2 = new Date();
+
+				let f = i=> i<10?'0'+i:i;
+
+				date2.setTime( date.getTime() );
+				let dateString = date2.getFullYear()+'-'+f( date2.getMonth()+1 )+'-'+f( date2.getDate() );
+				let key = product.asin+'_'+row.seller_id;//+'_'+dateString;
+				row.id = key;
+				row[ dateString ] = this.productUtils.getQty( stock.qty );
+
+				reportRows.push( row );
+			});
+		});
+
+		let dateRegexp = /\d{4}-\d\d-\d\d/;
+		let arrayReport = this.genericIndexTableGenerator( reportRows, 'id', ()=> true, (a,b)=>
+		{
+			if( a=== b )
+				return 0;
+
+			if( a === 'asin' )
+				return -1;
+
+			if( b === 'asin' )
+				return 1;
+
+			if( dateRegexp.test( a )  )
+			{
+				if( dateRegexp.test( b ) )
+					return a<b ? -1 : 1;
+
+				return 1;
+			}
+
+			if( dateRegexp.test( b ) )
+			{
+				return -11;
+			}
+
+			return a < b ? -1 : 1;
+
+		});
+
+		return arrayReport;
+	}
+
+	/*
+	 	genericIndexTableGenerator(
+		[
+			{ id: 1, 'producer':'John','2018-08-01', value:1 }
+			{ id: 1, 'producer':'Jane','2018-08-02', value:2 }
+			{ id: 1, date:'2018-08-03T01:02:03', value:3 }
+			{ id: 2, date:'2018-08-01T01:03:03', value:2 }
+			{ id: 2, date:'2018-08-01T01:02:03', value:2 }
+			{ id: 3, date:'2018-08-02T01:02:03', value:2 }
+			{ id: 4, date:'2018-08-04T01:02:03', value:2 }
+		]
+		,(item)=>{ return item.id+' '+item.producer } //key generator
+		,(column)=>{ if( column == 'date'   }
+	 */
+
+	genericIndexTableGenerator( array ,index_id ,indexFilter ,indexSort )
+	{
+		let indexSorter = indexSort && (typeof indexSort === "function" ) ? indexSort : (a,b)=>{ if( a==b ) return 0; return a<b?-1:1;};
+
+		let arrayResult = [];
+		let allKeys		= {};
+		let indexes		= {};
+
+		array.forEach( item=>
+		{
+			if( !(index_id in item ) )
+				return;
+
+			let key = item[ index_id ];
+
+			if( !( key in indexes) )
+			{
+				indexes[ key ] = {};
+			}
+
+			for(let i in item )
+			{
+				allKeys[ i ] = 1;
+				indexes[ key ][i]  = i == 'qty' ? this.productUtils.getQty( item.qty ) : this.getValueFromRow(i, item );
+			}
+		});
+
+		let allKeysColumns	= Object.keys( allKeys ).filter( indexFilter ).sort( indexSorter );
+		let allValues = Object.values( indexes );
+
+		let emptyArray = [];
+
+		arrayResult.push( allKeysColumns );
+
+		allValues.forEach((item)=>{
+			let row = emptyArray.slice(0);
+			allKeysColumns.forEach((i,index)=>
+			{
+				row[ index ] = i in item ? item[i] : '';
+			});
+			arrayResult.push( row );
+		});
+
+		return arrayResult;
 	}
 }

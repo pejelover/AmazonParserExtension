@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<script src="js/Diabetes/Utils.js"></script>
+		<script src="js/db-finger/DatabaseStore.js"></script>
+		<script src="js/AmazonParser/ProductUtils.js"></script>
+		<script src="js/Persistence.js"></script>
+		<script src="js/Promise-Utils/PromiseUtils.js"></script>
+		<script src="js/backup.js"></script>
+		<style>
+			#main_container
+			{
+				min-width: 400px;
+					padding: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="main_container">
+			<a href="#" id="backupLink">No Backup</a>
+
+
+			<label>
+			<input type="file" name="" id="inputFile">
+			<button id="importButton" class="btn btn-outline-secondary" type="button">Import</button>
+			<div id="status">
+			</div>
+		</div>
+
+	</body>
+</html>
