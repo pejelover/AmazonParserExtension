@@ -1,5 +1,7 @@
 var default_settings = {
-	parse_status	: false
+
+	id: 1
+	,parse_status	: false
 	,page_product: {
 		close_tab	: false
 		,add_to_cart : false
