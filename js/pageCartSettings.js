@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded',()=>
 
 		let form = Utils.getById('pageCartSettingsForm');
 
-		Utils.object2form( settings.page_product, form );
+		Utils.object2form( settings.page_cart, form );
 
 		document.getElementById('saveSettingsButton').addEventListener('click',()=>
 		{
