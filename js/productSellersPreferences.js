@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded',()=>
 
 			array.forEach((i)=>
 			{
-				let tokens = i.replace(/ /g,'').split(':');
+				let tokens = i.replace(/ /g,'').split(/[:\s]/);
 				let values = tokens[1].split(',');
 				if( tokens.length == 2 && tokens[1].trim() !== "" )
 				{

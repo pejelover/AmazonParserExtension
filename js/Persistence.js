@@ -604,6 +604,13 @@ class Persistence
 			if( !( 'stock' in product ) || product.stock.length == 0 )
 				return null;
 
+
+			if( product.asin === 'B06XKT8DY6' )
+			{
+				console.log('HERE',reportRows.length );
+
+			}
+
 			product.stock.forEach((stock)=>
 			{
 				if(!('time' in stock && 'seller_id' in stock ) )
@@ -633,6 +640,14 @@ class Persistence
 
 				reportRows.push( row );
 			});
+
+
+			if( product.asin === 'B06XKT8DY6' )
+			{
+				console.log('End ',reportRows.length );
+
+			}
+
 		});
 
 		let dateRegexp = /\d{4}-\d\d-\d\d/;
@@ -686,12 +701,17 @@ class Persistence
 	{
 		let indexSorter = indexSort && (typeof indexSort === "function" ) ? indexSort : (a,b)=>{ if( a==b ) return 0; return a<b?-1:1;};
 
+
 		let arrayResult = [];
 		let allKeys		= {};
 		let indexes		= {};
 
 		array.forEach( item=>
 		{
+
+		if( item.asin =='B06XKT8DY6' )
+			console.log( 'HERE AGAIN');
+
 			if( !(index_id in item ) )
 				return;
 
@@ -700,6 +720,11 @@ class Persistence
 			if( !( key in indexes) )
 			{
 				indexes[ key ] = {};
+			}
+			else
+			{
+				if( item.asin =='B06XKT8DY6' )
+					console.log( 'GotCHA AGAIN');
 			}
 
 			for(let i in item )

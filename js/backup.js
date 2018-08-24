@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function()
 				{
 					if( 'asin' in item )
 					{
+						console.log( 'Finish');
 						return persistence.updateProduct( item );
 					}
 					else
@@ -51,7 +52,10 @@ document.addEventListener('DOMContentLoaded', function()
 					}
 				};
 
-				PromiseUtils.runSequential( products, generator );
+				PromiseUtils.runSequential( products, generator ).then(()=>
+				{
+					console.log('Import ends');
+				});
 			}
 			catch(e)
 			{
