@@ -45,6 +45,12 @@ ext.addListener('SettingsChange',()=>
 	});
 });
 
+ext.addListener('StockFound',(url,request,tab_id)=>
+{
+	if( Array.isArray( request ) && request.length  )
+		persistence.addStock( request );
+});
+
 ext.addListener('ProductsFound',(url,request,tab_id)=>
 {
 	if( Array.isArray( request ) && request.length )

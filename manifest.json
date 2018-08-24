@@ -27,6 +27,7 @@
 				,"js/AmazonParser/ProductUtils.js"
 				,"js/AmazonParser/ProductPage.js"
 				,"js/AmazonParser/CartPage.js"
+				,"js/AmazonParser/Prev2Cart.js"
 				,"js/AmazonParser/ProductSellersPage.js"
 				,"js/AmazonParser/AmazonParser.js"
 				,"js/extension-framework/Client.js"

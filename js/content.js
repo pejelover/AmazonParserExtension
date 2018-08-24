@@ -74,6 +74,9 @@ function parseProductPage()
 		if( p )
 			client.executeOnBackground('ProductsFound',[ p ]);
 
+		if( p.stock.length )
+			client.executeOnBackground('StockFound',p.stock );
+
 
 		let seller_id = null;
 
@@ -149,7 +152,16 @@ function parseCart()
 
 		let products = parser.cartPage.getProducts();
 
-		client.executeOnBackground('ProductsFound', products );
+		//client.executeOnBackground('ProductsFound', products );
+		let stockArray = products.reduce((array, product)=>
+		{
+			product.stock.forEach( a=> array.push( a ) );
+			return array;
+		},[]);
+
+		if( stockArray.length )
+			client.executeOnBackground('StockFound', stockArray );
+
 
 
 		if( settings.page_cart.parse_stock )
@@ -158,8 +170,14 @@ function parseCart()
 			{
 				let notNullProducts = products.filter( p => p !== null );
 
-				if( notNullProducts.length )
-					client.executeOnBackground('ProductsFound', notNullProducts );
+				let aSArray	= notNullProducts.reduce((array, product)=>
+				{
+					product.stock.forEach( a=> array.push( a ) );
+					return array;
+				},[]);
+
+				if( aSArray.length )
+					client.executeOnBackground('StockArray', aSArray );
 
 				if( settings.page_cart.close_tab )
 					client.closeThisTab();
@@ -185,8 +203,13 @@ function parseSearchPage()
 		if( p.length == 0 )
 			p = parser.parseProductSearchList2();
 
+		if( p.stock.length )
+			client.executeOnBackground('StockFound', p.stock );
+
 		if( p.length )
 			client.executeOnBackground('ProductsFound', p );
+
+
 	})
 	.catch((error)=>
 	{
@@ -200,6 +223,10 @@ function parseVendorsPage()
 	.then(()=>
 	{
 		let p = parser.productSellersPage.getProduct();
+
+		if( p.stock.length )
+			client.executeOnBackground('StockFound', p.stock );
+
 		client.executeOnBackground("ProductsFound", [p] );
 
 		return PromiseUtils.resolveAfter( 1, 2000 )
@@ -249,6 +276,15 @@ function parse()
 				,action		: 'do_nothing'
 			}
 			*/
+
+			if( settings.page_previous_cart.action !== 'do_nothing' )
+			{
+				if( this.amazonParser.prev2cart.hasError() )
+				{
+					window.history.back();
+					return;
+				}
+			}
 
 			switch( settings.page_previous_cart.action )
 			{

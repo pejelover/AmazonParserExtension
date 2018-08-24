@@ -35,6 +35,20 @@ document.addEventListener('DOMContentLoaded', function()
 		//	date2.setMinutes( date2.getMinutes() - date2.getTimezoneOffset() );
 		//	date2String = date2.toISOString();
 		//}
+		//
+		if( type === 'backup' )
+		{
+			persistence.getStockList( date1, date2 ).then((stockArray)=>
+			{
+				let s = persistence.getStockReport2( stockArray );
+				download('hello.csv', s );
+			})
+			.catch((e)=>
+			{
+				console.error( e );
+			});
+			return;
+		}
 
 
 		persistence.getProductList( date1, date2 ).then((products)=>

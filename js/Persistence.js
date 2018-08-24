@@ -6,7 +6,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 10
+			,version	: 13
 			,stores		:{
 				products:
 				{
@@ -19,6 +19,17 @@ class Persistence
 						,{ indexName: 'search'	,keyPath:'search'	,objectParameters: { uniq: false ,multiEntry: true} }
 						,{ indexName: 'parsedDates'	,keyPath:'parsedDates', objectParameters: { uniq: false ,multiEntry: true} }
 						,{ indexName: 'parsed'	,keyPath:'parsed', objectParameters: { uniq: false ,multiEntry: false} }
+					]
+				}
+				,stock:
+				{
+					keyPath	: 'id'
+					,autoincrement: true
+					,indexes	:
+					[
+						{ indexName : 'asin'	,keyPath:'asin' ,objectParameters: { uniq: false, multiEntry: false} }
+						,{ indexName: 'time'	,keyPath:'time'	,objectParameters: { uniq: false ,multiEntry: false} }
+						,{ indexName: 'seller_id'	,keyPath:'seller_id'	,objectParameters: { uniq: false ,multiEntry: false} }
 					]
 				}
 				,urls:
@@ -61,6 +72,12 @@ class Persistence
 	updateUrl( url )
 	{
 		return this.database.put( 'urls', url );
+	}
+
+	addStock( stockArray )
+	{
+		let filtered = stockArray.filter( stock => 'qty' in stock && 'time' in stock && 'seller_id' in stock );
+		return this.database.updateItems('stock', filtered );
 	}
 
 	updateProduct( product )
@@ -126,21 +143,44 @@ class Persistence
 		});
 	}
 
+	saveProductLists( list )
+	{
+		return this.database.updateItems('products', list );
+	}
+
+	getStockList( date1, date2 )
+	{
+		let options = {};
+		if( date1 )
+		{
+			options.index = 'time';
+			options['>='] = date1.toISOString();
+		}
+
+		if( date2 )
+		{
+			options.index = 'time';
+			options['<='] = date2.toISOString();
+		}
+
+		return this.database.getAll('stock', options );
+	}
+
 	getProductList( date1, date2 )
 	{
 		let options = {};
 
-		//if( date1 )
-		//{
-		//	options.index = 'parsedDates';
-		//	options['>='] = date1.toISOString();
-		//}
+		if( date1 )
+		{
+			options.index = 'parsedDates';
+			options['>='] = date1.toISOString();
+		}
 
-		//if( date2 )
-		//{
-		//	options.index = 'parsedDates';
-		//	options['<='] = date2.toISOString();
-		//}
+		if( date2 )
+		{
+			options.index = 'parsedDates';
+			options['<='] = date2.toISOString();
+		}
 
 		return this.database.getAll('products', options );
 	}
@@ -447,9 +487,9 @@ class Persistence
 	}
 
 
-	getDownloadHref( array )
+	getDownloadHref( object )
 	{
-		var blob = new Blob([JSON.stringify( array, null, 2)], {type : 'application/json'});
+		var blob = new Blob([JSON.stringify( object , null, 2)], {type : 'application/json'});
 		let objectURL = URL.createObjectURL( blob );
 		return objectURL;
 	}
@@ -597,62 +637,46 @@ class Persistence
 		return s;
 	}
 
-	getStockReportArray( productsArray )
+	getStockReportArray( stockArray )
 	{
 		let reportRows = [];
-		productsArray.forEach((product)=>
+		stockArray.forEach((stock)=>
 		{
-			if( !( 'stock' in product ) || product.stock.length == 0 )
-				return null;
+			let row = {};
 
+			if(!('asin' in stock && 'time' in stock && 'seller_id' in stock ) )
+				return;
 
-			if( product.asin === 'B06XKT8DY6' )
+			if( this.productUtils.getQty( stock.qty ) == 'Error > 990' )
+				return;
+
+			for(let i in stock )
 			{
-				console.log('HERE',reportRows.length );
-
+				row[ i ] =  stock[ i ];
 			}
 
-			product.stock.forEach((stock)=>
-			{
-				if(!('time' in stock && 'seller_id' in stock ) )
-					return;
+			let date = new Date( stock.time );
+			let date2 = new Date();
 
-				if( this.productUtils.getQty( stock.qty ) == 'Error > 990' )
-					return;
+			let f = i=> i<10?'0'+i:i;
 
+			date2.setTime( date.getTime() );
+			let dateString = date2.getFullYear()+'-'+f( date2.getMonth()+1 )+'-'+f( date2.getDate() );
+			let key = stock.asin+'_'+row.seller_id;//+'_'+dateString;
+			row.id = key;
+			row[ dateString ] = this.productUtils.getQty( stock.qty );
 
-				let row = { asin: product.asin };
-
-				for(let i in stock )
-				{
-					row[ i ] =  stock[ i ];
-				}
-
-				let date = new Date( stock.time );
-				let date2 = new Date();
-
-				let f = i=> i<10?'0'+i:i;
-
-				date2.setTime( date.getTime() );
-				let dateString = date2.getFullYear()+'-'+f( date2.getMonth()+1 )+'-'+f( date2.getDate() );
-				let key = product.asin+'_'+row.seller_id;//+'_'+dateString;
-				row.id = key;
-				row[ dateString ] = this.productUtils.getQty( stock.qty );
-
-				reportRows.push( row );
-			});
-
-
-			if( product.asin === 'B06XKT8DY6' )
-			{
-				console.log('End ',reportRows.length );
-
-			}
-
+			reportRows.push( row );
 		});
 
+		let indexFilter = (index)=>
+		{
+			let banned = ['qty','id','date','time'];
+			return !banned.some( i=> i === index );
+		};
+
 		let dateRegexp = /\d{4}-\d\d-\d\d/;
-		let arrayReport = this.genericIndexTableGenerator( reportRows, 'id', ()=> true, (a,b)=>
+		let arrayReport = this.genericIndexTableGenerator( reportRows, 'id', indexFilter , (a,b)=>
 		{
 			if( a=== b )
 				return 0;
