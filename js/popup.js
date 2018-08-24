@@ -1,8 +1,11 @@
 
+
 document.addEventListener('DOMContentLoaded', function()
 {
+	var persistence = new Persistence();
+	persistence.init();
+
 	//var ext = new Client();
-	let persistence = new Persistence();
 
 	chrome.windows.getCurrent((w)=>
 	{
@@ -13,7 +16,28 @@ document.addEventListener('DOMContentLoaded', function()
 	{
 		let type = document.getElementById('report-type').value;
 
-		persistence.getProductList().then((products)=>
+		let date1 = null;
+		let date2 = null;
+
+		let date1String = '';//Utils.getById("date1").value;
+		let date2String = '';//Utils.getById("date2").value;
+
+		//if( date1String )
+		//{
+		//	date1 = new Date( date1String );
+		//	date1.setMinutes( date1.getMinutes()-date1.getTimezoneOffset() );
+		//	date1String = date1.toISOString();
+		//}
+
+		//if( date2String )
+		//{
+		//	date2 = new Date( date2String );
+		//	date2.setMinutes( date2.getMinutes() - date2.getTimezoneOffset() );
+		//	date2String = date2.toISOString();
+		//}
+
+
+		persistence.getProductList( date1, date2 ).then((products)=>
 		{
 			console.log('All products',products.length );
 
@@ -34,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function()
 				}
 				case 'historic_stock':
 				{
-					let s = persistence.generateHistoricStockReport( products );
+					let s = persistence.generateHistoricReportByDays( products );//generateHistoricStockReport( products, date1String, date2String );
 					let date = new Date();
 					let filename = 'Historic_stock_'+(date.toISOString().substring(0,10) )+'.csv';
 					download(filename,s);
@@ -47,6 +71,11 @@ document.addEventListener('DOMContentLoaded', function()
 					let filename= 'Historic_price_'+(date.toISOString().substring(0,10) )+'.csv';
 					download(filename,s);
 					break;
+				}
+				case 'backup':
+				{
+					let s = persistence.getStockReport2( products );
+					download('hello.csv', s );
 				}
 			}
 		});
