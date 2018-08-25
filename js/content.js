@@ -92,6 +92,7 @@ function parseProductPage()
 
 		let seller_match = true;
 
+
 		if('product_sellers_preferences' in settings && settings.product_sellers_preferences )
 		{
 			if( p.asin in settings.product_sellers_preferences )
@@ -101,6 +102,11 @@ function parseProductPage()
 					seller_match = false;
 				}
 			}
+		}
+
+		if( p.stock.length && p.stock[0].qty === 'Currently unavailable.' )
+		{
+			seller_match = true;
 		}
 
 
@@ -232,18 +238,26 @@ function parseVendorsPage()
 		return PromiseUtils.resolveAfter( 1, 2000 )
 		.then(()=>
 		{
-			if( p.offers.length === 1 )
+			if( settings.page_sellers.action === 'do_nothing' )
 			{
-				console.log("adding to cart");
-				parser.productSellersPage.addToCartFirstSeller();
+				return Promise.resolve(1);
 			}
-			else if( p.asin && settings.product_sellers_preferences  )
+
+			if( ["add_cart_first","add_cart_cheapest","add_cart_prime"].indexOf( settings.page_sellers.action ) !== -1 )
 			{
-				parser.productSellersPage.addToCartBySellerId( settings.product_sellers_preferences[ p.asin ][ 0 ] );
-			}
-			else
-			{
-				parser.productSellersPage.addToCartFirstSeller();
+				if( p.offers.length === 1 )
+				{
+					console.log("adding to cart");
+					parser.productSellersPage.addToCartFirstSeller();
+				}
+				if( p.asin && p.asin in settings.product_sellers_preferences )
+				{
+					let search = settings.product_sellers_preferences[ p.asin ][ 0 ];
+					if( search === 'ATVPDKIKX0DER' )
+						search = 'amazon.com';
+
+					parser.productSellersPage.addToCartBySellerId( search );
+				}
 			}
 		});
 	})
@@ -279,7 +293,7 @@ function parse()
 
 			if( settings.page_previous_cart.action !== 'do_nothing' )
 			{
-				if( this.amazonParser.prev2cart.hasError() )
+				if( parser.prev2cart.hasError() )
 				{
 					window.history.back();
 					return;

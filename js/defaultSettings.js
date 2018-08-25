@@ -20,10 +20,10 @@ var default_settings = {
 	}
 	,page_sellers:
 	{
-
-
+		action	: 'do_nothing'
 	}
-	,product_sellers_preferences: {}
+	,product_sellers_preferences: {
+	}
 };
 
 
