@@ -446,7 +446,7 @@ class Persistence
 		if( key in obj )
 		{
 			return  typeof obj[ key ] === 'string'
-				? obj[ key ].trim().replace(/"/g, '""' ).replace(/\s+/g,' ')
+				? '"'+obj[ key ].trim().replace(/"/g, '""' ).replace(/\s+/g,' ')+'"'
 				: obj[ key ];
 		}
 
@@ -485,7 +485,6 @@ class Persistence
 			,"title"		: true
 		};
 	}
-
 
 	getDownloadHref( object )
 	{
@@ -624,16 +623,31 @@ class Persistence
 		});
 	}
 
-
-
 	getStockReport2( productsArray )
 	{
 		let array = this.getStockReportArray( productsArray );
 		let s = '';
+		//array.forEach((row,iIndex)=>
+		//{
+		//	row.forEach((j,index)=>
+		//	{
+		//		if( j == 'This seller has a limit of 25 per customer. To see if more are available from another seller, go to the product detail page.' )
+		//			console.log('HERE' );
+
+		//		array[ iIndex][index ] = typeof j === 'string' ? '"'+(j.trim().replace(/"/g, '""' ).replace(/\s+/g,' '))+'"' : j;
+		//	});
+		//});
+
 		array.forEach(i=>
 		{
+			//i.forEach((j,index)=>
+			//{
+			//	i[ index ] = typeof j === 'string' ? j.trim().replace(/"/g, '""' ).replace(/\s+/g,' ') : j;
+			//});
 			s+= i.join(",")+"\n";
 		});
+
+
 		return s;
 	}
 
@@ -734,9 +748,6 @@ class Persistence
 		array.forEach( item=>
 		{
 
-		if( item.asin =='B06XKT8DY6' )
-			console.log( 'HERE AGAIN');
-
 			if( !(index_id in item ) )
 				return;
 
@@ -746,16 +757,11 @@ class Persistence
 			{
 				indexes[ key ] = {};
 			}
-			else
-			{
-				if( item.asin =='B06XKT8DY6' )
-					console.log( 'GotCHA AGAIN');
-			}
 
 			for(let i in item )
 			{
 				allKeys[ i ] = 1;
-				indexes[ key ][i]  = i == 'qty' ? this.productUtils.getQty( item.qty ) : this.getValueFromRow(i, item );
+				indexes[ key ][ i ]  = i == 'qty' ? '"'+this.productUtils.getQty( item.qty )+'"' : this.getValueFromRow(i, item );
 			}
 		});
 
