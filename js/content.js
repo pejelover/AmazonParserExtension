@@ -107,10 +107,12 @@ function parseProductPage()
 		if( p.stock.length && p.stock[0].qty === 'Currently unavailable.' )
 		{
 			seller_match = true;
+			if( p.asin in settings.product_sellers_preferences )
+				p.stock[0].seller_id = settings.product_sellers_preferences[ p.asin ][ 0 ];
 		}
 
-
-
+		if( p.stock.length )
+			client.executeOnBackground('StockFound',p.stock );
 
 		if( p.stock.length && settings.page_product.close_if_stock_found && seller_match)
 		{
