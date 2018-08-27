@@ -68,7 +68,6 @@ class Persistence
 		return this.database.init();
 	}
 
-
 	updateUrl( url )
 	{
 		return this.database.put( 'urls', url );

@@ -47,8 +47,15 @@ ext.addListener('SettingsChange',()=>
 
 ext.addListener('StockFound',(url,request,tab_id)=>
 {
+	try{
 	if( Array.isArray( request ) && request.length  )
 		persistence.addStock( request );
+	else
+		console.log("not a valid request");
+	}catch(e)
+	{
+		console.log( e );
+	}
 });
 
 ext.addListener('ProductsFound',(url,request,tab_id)=>

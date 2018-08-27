@@ -2,8 +2,20 @@
 
 document.addEventListener('DOMContentLoaded', function()
 {
+
 	var persistence = new Persistence();
 	persistence.init();
+
+	let date = new Date();
+
+	let f = (d)=>{
+		return d < 10 ? "0"+d: d;
+	};
+
+	Utils.getById("date1").value = date.getFullYear()+"-"+f( date.getMonth()+1 )+"-"+date.getDate();
+	//Utils.getById("date2").value = date1.toISOString();
+
+
 
 	//var ext = new Client();
 
@@ -19,23 +31,23 @@ document.addEventListener('DOMContentLoaded', function()
 		let date1 = null;
 		let date2 = null;
 
-		let date1String = '';//Utils.getById("date1").value;
-		let date2String = '';//Utils.getById("date2").value;
+		let date1String = Utils.getById("date1").value;
+		let date2String = Utils.getById("date2").value;
 
-		//if( date1String )
-		//{
-		//	date1 = new Date( date1String );
-		//	date1.setMinutes( date1.getMinutes()-date1.getTimezoneOffset() );
-		//	date1String = date1.toISOString();
-		//}
+		if( date1String )
+		{
+			date1 = new Date( date1String );
+			//date1.setMinutes( date1.getMinutes()-date1.getTimezoneOffset() );
+			//date1String = date1.toISOString();
+		}
 
-		//if( date2String )
-		//{
-		//	date2 = new Date( date2String );
-		//	date2.setMinutes( date2.getMinutes() - date2.getTimezoneOffset() );
-		//	date2String = date2.toISOString();
-		//}
-		//
+		if( date2String )
+		{
+			date2 = new Date( date2String );
+			//date2.setMinutes( date2.getMinutes() - date2.getTimezoneOffset() );
+			//date2String = date2.toISOString();
+		}
+
 		if( type === 'backup' )
 		{
 			persistence.getStockList( date1, date2 ).then((stockArray)=>
