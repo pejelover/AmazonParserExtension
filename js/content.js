@@ -78,6 +78,9 @@ function parseProductPage()
 			client.executeOnBackground('StockFound',p.stock );
 
 
+
+
+
 		let seller_id = null;
 
 		if( p.stock.length && 'seller_id' in p.stock[0] )
@@ -100,13 +103,29 @@ function parseProductPage()
 				if( seller_id !== settings.product_sellers_preferences[ p.asin ][ 0 ] )
 				{
 					seller_match = false;
+
+
 				}
 			}
 		}
 
+		let isMerchantProduct  	= false;
+		let merchantId			= null;
+
+		let params = parser.getParameters( window.location.href );
+
+		if( 'm' in params )
+		{
+			isMerchantProduct = true;
+			merchantId	= params.m;
+		}
+
+
 		if( p.stock.length && p.stock[0].qty === 'Currently unavailable.' )
 		{
-			seller_match = true;
+			if( !isMerchantProduct )
+				seller_match = true;
+
 			if( p.asin in settings.product_sellers_preferences )
 				p.stock[0].seller_id = settings.product_sellers_preferences[ p.asin ][ 0 ];
 		}
@@ -126,6 +145,11 @@ function parseProductPage()
 		}
 		else if( settings.page_product.goto_sellers_pages )
 		{
+			if( isMerchantProduct )
+			{
+				window.location.href = window.location.href.replace('m='+merchantId,'');
+				return;
+			}
 			let func= ()=> {
 				console.log('Trying another');
 				return parser.productPage.followPageProductOffers();
