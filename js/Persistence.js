@@ -6,7 +6,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 13
+			,version	: 14
 			,stores		:{
 				products:
 				{
@@ -22,6 +22,17 @@ class Persistence
 					]
 				}
 				,stock:
+				{
+					keyPath	: 'id'
+					,autoincrement: true
+					,indexes	:
+					[
+						{ indexName : 'asin'	,keyPath:'asin' ,objectParameters: { uniq: false, multiEntry: false} }
+						,{ indexName: 'time'	,keyPath:'time'	,objectParameters: { uniq: false ,multiEntry: false} }
+						,{ indexName: 'seller_id'	,keyPath:'seller_id'	,objectParameters: { uniq: false ,multiEntry: false} }
+					]
+				}
+				,offers:
 				{
 					keyPath	: 'id'
 					,autoincrement: true
@@ -77,6 +88,12 @@ class Persistence
 	{
 		let filtered = stockArray.filter( stock => 'qty' in stock && 'time' in stock && 'seller_id' in stock );
 		return this.database.updateItems('stock', filtered );
+	}
+
+	addOffers( offersArray )
+	{
+		let filtered = offersArray.filter( offer => 'price' in offer && 'time' in offer );
+		return this.database.updateItems( 'offers', filtered );
 	}
 
 	updateProduct( product )
