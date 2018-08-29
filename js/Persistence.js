@@ -2,7 +2,7 @@ class Persistence
 {
 	constructor()
 	{
-		this.productUtils	= new ProductUtils();
+		this.productUtils	= new ProductUtils({});
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
