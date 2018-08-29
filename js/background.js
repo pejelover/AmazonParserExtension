@@ -45,6 +45,20 @@ ext.addListener('SettingsChange',()=>
 	});
 });
 
+//ext.addListener('OffersFound',(url,request,tab_id)=>
+//{
+//	try{
+//	if( Array.isArray( request ) && request.length  )
+//		persistence.addOffers( request );
+//	else
+//		console.log("not a valid request");
+//	}catch(e)
+//	{
+//		console.log( e );
+//	}
+//
+//});
+
 ext.addListener('StockFound',(url,request,tab_id)=>
 {
 	try{
@@ -62,6 +76,15 @@ ext.addListener('ProductsFound',(url,request,tab_id)=>
 {
 	if( Array.isArray( request ) && request.length )
 	{
+		let offers = request.reduce((prev,product)=>
+		{
+			product.offers.forEach( i=> prev.push( i ) );
+			return prev;
+		});
+
+		if( offers.length )
+			persistence.addOffers( offers );
+
 		console.log('products found', request );
 		persistence.updateProductLists( request );
 	}
