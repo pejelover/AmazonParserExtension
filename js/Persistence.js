@@ -86,7 +86,16 @@ class Persistence
 
 	addStock( stockArray )
 	{
-		let filtered = stockArray.filter( stock => 'qty' in stock && 'time' in stock && 'seller_id' in stock );
+		let filtered = stockArray.reduce( (prev,stock) =>
+		{
+			if( 'qty' in stock && 'time' in stock && 'seller_id' in stock )
+			{
+				if( stock.seller_id === 'amazon.com' )
+					stock.seller_id = 'ATVPDKIKX0DER';
+			}
+			return prev;
+		},[]);
+
 		return this.database.updateItems('stock', filtered );
 	}
 
