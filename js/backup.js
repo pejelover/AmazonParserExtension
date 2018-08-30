@@ -48,9 +48,16 @@ document.addEventListener('DOMContentLoaded', function()
 				{
 					let obj= JSON.parse( evt.target.result );
 
+					console.log('Try to save',obj.stock.length);
+
 					return persistence.saveProductLists( obj.products ).then(()=>
 					{
 						return persistence.addStock( obj.stock );
+					})
+					.then((result)=>
+					{
+						console.log('It Finish',obj.stock.length);
+						return result;
 					})
 					.catch((e)=>
 					{

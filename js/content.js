@@ -305,20 +305,45 @@ function parseVendorsPage()
 							{
 								parser.productSellersPage.goToNextPage();
 							});
+							return;
 						}
 						else
 						{
 							console.log('No Next');
+							//
+							//asin : "B0006IK2EK"
+							//date : "2018-08-21"
+							//id : 21932
+							//qty : 999
+							//seller_id : "ATVPDKIKX0DER"
+							//time : "2018-08-21T21:55:00.000Z"
+
+							let x = d => d<10 ? "0"+d: d;
+
+							client.executeOnBackground("StockFound",[{
+								asin: p.asin
+								,time: parser.productUtils.date.toISOString()
+								,qty: "NOT FOUND"
+								,seller_id: settings.product_sellers_preferences[ p.asin ][0]
+								,date: parser.productUtils.date.getFullYear()+"-"+x( parser.productUtils.date.getMonth()+1)+"-"+x( parser.productUtils.date.getDate() )
+							}]);
+
+							if( !parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
+							{
+								parser.productSellersPage.addToCartFirstSeller();
+							}
 						}
 					}
 					else
 					{
-						console.log('No Next');
+						return;
+						//Found
 					}
 				}
 				else
 				{
 					parser.productSellersPage.addToCartFirstSeller();
+					return;
 				}
 			}
 		});
@@ -329,6 +354,11 @@ function parseVendorsPage()
 	});
 }
 
+
+client.addListener("ParseAgain",()=>
+{
+	parse();
+});
 
 function parse()
 {
