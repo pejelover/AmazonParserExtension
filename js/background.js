@@ -45,19 +45,19 @@ ext.addListener('SettingsChange',()=>
 	});
 });
 
-//ext.addListener('OffersFound',(url,request,tab_id)=>
-//{
-//	try{
-//	if( Array.isArray( request ) && request.length  )
-//		persistence.addOffers( request );
-//	else
-//		console.log("not a valid request");
-//	}catch(e)
-//	{
-//		console.log( e );
-//	}
-//
-//});
+ext.addListener('OffersFound',(url,request,tab_id)=>
+{
+	try{
+	if( Array.isArray( request ) && request.length  )
+		persistence.addOffers( request );
+	else
+		console.log("not a valid request");
+	}catch(e)
+	{
+		console.log( e );
+	}
+
+});
 
 ext.addListener('StockFound',(url,request,tab_id)=>
 {
