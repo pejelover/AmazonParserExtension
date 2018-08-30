@@ -80,14 +80,13 @@ function parseProductPage()
 		let p = parser.productPage.getProduct();
 
 		if( p )
-			client.executeOnBackground('ProductsFound',[ p ]);
+			client.executeOnBackground('ProductsFound', [ p ] );
 
-		if( p.stock.length )
+		if( p && p.offers.length )
+			client.executeOnBackground('OffersFound', p.offers );
+
+		if( p && p.stock.length )
 			client.executeOnBackground('StockFound',p.stock );
-
-
-
-
 
 		let seller_id = null;
 
@@ -199,6 +198,8 @@ function parseCart()
 			return array;
 		},[]);
 
+
+
 		if( stockArray.length )
 			client.executeOnBackground('StockFound', stockArray );
 
@@ -246,6 +247,9 @@ function parseSearchPage()
 		if( p.stock.length )
 			client.executeOnBackground('StockFound', p.stock );
 
+		if( p.offers.length )
+			client.executeOnBackground('OffersFound', p.offers );
+
 		if( p.length )
 			client.executeOnBackground('ProductsFound', p );
 
@@ -266,6 +270,9 @@ function parseVendorsPage()
 
 		if( p.stock.length )
 			client.executeOnBackground('StockFound', p.stock );
+
+		if( p.offers.length )
+			client.executeOnBackground('OffersFound', p.offers );
 
 		client.executeOnBackground("ProductsFound", [p] );
 
