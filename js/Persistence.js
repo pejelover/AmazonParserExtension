@@ -92,6 +92,7 @@ class Persistence
 			{
 				if( stock.seller_id === 'amazon.com' )
 					stock.seller_id = 'ATVPDKIKX0DER';
+				prev.push( stock );
 			}
 			return prev;
 		},[]);
