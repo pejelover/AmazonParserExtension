@@ -38,4 +38,9 @@ document.addEventListener('DOMContentLoaded',()=>
 	{
 		console.error('This must never happen',e);
 	});
+
+	document.getElementById('openBackup').addEventListener('click',(evt)=>
+	{
+		client.executeOnBackground('OpenBackup',{});
+	});
 });
