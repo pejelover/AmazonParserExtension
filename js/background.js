@@ -1,9 +1,4 @@
 
-window.addEventListener("unhandledrejection", function(err, promise) {
-    // handle error here, for example log
-});
-
-
 
 window.onerror = function(err){
     console.log(err); // logs all errors
@@ -71,6 +66,11 @@ ext.addListener('StockFound',(url,request,tab_id)=>
 		console.log( e );
 	}
 });
+
+ext.addListener('OpenBackup',()=>{
+	chrome.tabs.create({url: chrome.extension.getURL('backup.html')});
+});
+
 
 ext.addListener('ProductsFound',(url,request,tab_id)=>
 {
