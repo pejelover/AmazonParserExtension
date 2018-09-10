@@ -182,16 +182,8 @@ function parseCart()
 	checkForRobots().then(()=>
 	{
 
-		/*
-	,page_cart:
-	{
-		parse_stock	: false
-		,close_tab	: false
-	} */
-
 		let products = parser.cartPage.getProducts();
 
-		//client.executeOnBackground('ProductsFound', products );
 		let stockArray = products.reduce((array, product)=>
 		{
 			product.stock.forEach( a=> array.push( a ) );
@@ -199,13 +191,12 @@ function parseCart()
 		},[]);
 
 
-
-		if( stockArray.length )
-			client.executeOnBackground('StockFound', stockArray );
-
-
-
-		if( settings.page_cart.parse_stock )
+		if( !settings.page_cart.parse_stock )
+		{
+			if( stockArray.length )
+				client.executeOnBackground('StockFound', stockArray );
+		}
+		else
 		{
 			return parser.cartPage.parseAllTheStock( client ).then((products)=>
 			{
