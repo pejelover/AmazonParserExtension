@@ -68,15 +68,6 @@ function parseProductPage()
 {
 	checkForRobots().then(()=>
 	{
-
-			/*
-		page_product: {
-		close_tab	: false
-		,add_to_cart : false
-		,close_if_stock_found: false
-		,goto_sellers_pages	: false
-		} */
-
 		let p = parser.productPage.getProduct();
 
 		if( p )
@@ -216,6 +207,10 @@ function parseCart()
 			});
 		}
 	})
+	.then(()=>
+	{
+		setTimeout(()=>{ parseCart(); }, 20000 );
+	})
 	.catch((e)=>
 	{
 		console.error('Error on parse cart', e );
@@ -300,15 +295,6 @@ function parseVendorsPage()
 						}
 						else
 						{
-							console.log('No Next');
-							//
-							//asin : "B0006IK2EK"
-							//date : "2018-08-21"
-							//id : 21932
-							//qty : 999
-							//seller_id : "ATVPDKIKX0DER"
-							//time : "2018-08-21T21:55:00.000Z"
-
 							let x = d => d<10 ? "0"+d: d;
 
 							client.executeOnBackground("StockFound",[{
