@@ -783,6 +783,12 @@ class Persistence
 			{
 				indexes[ key ] = {};
 			}
+			else
+			{
+				let qty = this.productUtils.getQty( item.qty );
+				if( qty === "NOT FOUND" )
+					return;
+			}
 
 			for(let i in item )
 			{

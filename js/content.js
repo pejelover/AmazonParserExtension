@@ -209,7 +209,7 @@ function parseCart()
 	})
 	.then(()=>
 	{
-		setTimeout(()=>{ parseCart(); }, 20000 );
+		setTimeout(()=>{ window.location.reload() }, 20000 );
 	})
 	.catch((e)=>
 	{
