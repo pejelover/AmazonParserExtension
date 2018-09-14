@@ -23,6 +23,7 @@ var default_settings = {
 	,page_sellers:
 	{
 		action	: 'do_nothing'
+		,go_to_next	: false
 	}
 	,product_sellers_preferences: {
 	}
@@ -260,7 +261,7 @@ function parseVendorsPage()
 		if( p.offers.length )
 			client.executeOnBackground('OffersFound', p.offers );
 
-		client.executeOnBackground("ProductsFound", [p] );
+		//client.executeOnBackground("ProductsFound", [p] );
 
 		return PromiseUtils.resolveAfter( 1, 2000 )
 		.then(()=>
@@ -284,7 +285,7 @@ function parseVendorsPage()
 
 					if( !parser.productSellersPage.addToCartBySellerId( search ) )
 					{
-						if( parser.productSellersPage.hasNextPage() )
+						if( parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
 						{
 							PromiseUtils.resolveAfter( 1000, 1 )
 							.then(()=>

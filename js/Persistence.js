@@ -383,18 +383,6 @@ class Persistence
 				product.stock.forEach((stock)=>
 				{
 					row = [];
-
-					//if( (date1String || date2String )  && !('time' in stock ) )
-					//	return;
-
-					//if( date1String && stock.time < date1String )
-					//	return;
-
-					//if( date2String && stock.time > date2String )
-					//{
-					//	return;
-					//}
-
 					keys.forEach((key)=>
 					{
 
@@ -486,6 +474,8 @@ class Persistence
 		return {
 			"asin"	: true
 			,"url"	: true
+			,"key"	: true
+			,"id"	: true
 			,"producer" : true
 			,"qty": true
 			,"title"	: true
@@ -649,27 +639,78 @@ class Persistence
 		});
 	}
 
+	getPriceReport( priceArray )
+	{
+
+		let allColumns			= {
+			'asin'	: 0
+			,'seller_id' : 1
+			,'key': 1
+		};
+
+		let transformedObjects	= [];
+
+		priceArray.forEach((offer)=>
+		{
+			if( !('asin' in offer && 'price' in offer && 'time') )
+				return;
+
+			let date = new Date( offer.time );
+			let date2 = new Date();
+
+			let f = i=> i<10?'0'+i:i;
+
+			date2.setTime( date.getTime() );
+			let dateString = date2.getFullYear()+'-'+f( date2.getMonth()+1 )+'-'+f( date2.getDate() );
+			let fObject = { id: offer.asin+'-'+offer.seller_id, asin: offer.asin, seller_id: offer.seller_id };
+			fObject[ dateString ] = offer.price;
+			transformedObjects.push(  fObject );
+			allKeysColumns[ dateString ] = Object.object( allColumns ).length;
+		});
+
+
+		let columnSorter = (a,b)=>
+		{
+			if( a === b )
+				return 0;
+
+			return allKeysColumns[ a ] < allKeysColumns[ b ] ? -1 : 1;
+		};
+
+		let columns = Object.values( allKeysColumns ).sort( columnSorter );
+
+		let itemFilter		= null;
+
+		let itemSelector = (oldItem,newItem)=>newItem;
+
+		let valueMapperGetter = ( key, item )=>
+		{
+			return this.getValueFromRow( key, item );
+		};
+
+		//genericIndexTableGenerator( array ,index_id ,itemFilter, allKeysColumns, itemSelector, valueMapperGetter )
+		let finalArray = this.genericIndexTableGenerator
+		(
+			priceArray //array
+			,'id' //index_id
+			,itemFilter
+			,allKeysColumns
+			,itemSelector
+			,valueMapperGetter
+		);
+
+		finalArray.splice( 0, 0, columns );
+
+		return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
+	}
+
 	getStockReport2( productsArray )
 	{
 		let array = this.getStockReportArray( productsArray );
 		let s = '';
-		//array.forEach((row,iIndex)=>
-		//{
-		//	row.forEach((j,index)=>
-		//	{
-		//		if( j == 'This seller has a limit of 25 per customer. To see if more are available from another seller, go to the product detail page.' )
-		//			console.log('HERE' );
-
-		//		array[ iIndex][index ] = typeof j === 'string' ? '"'+(j.trim().replace(/"/g, '""' ).replace(/\s+/g,' '))+'"' : j;
-		//	});
-		//});
 
 		array.forEach(i=>
 		{
-			//i.forEach((j,index)=>
-			//{
-			//	i[ index ] = typeof j === 'string' ? j.trim().replace(/"/g, '""' ).replace(/\s+/g,' ') : j;
-			//});
 			s+= i.join(",")+"\n";
 		});
 
@@ -677,9 +718,29 @@ class Persistence
 		return s;
 	}
 
+	//getStockReport2( productsArray )
+	//{
+	//	let array = this.getStockReportArray( productsArray );
+
+	//	let finalArray = this.genericIndexTableGenerator
+	//	(
+	//		array
+	//		,'key'
+	//		,null
+	//		,null
+	//		,null
+	//		,(oldItem,newItem)=>newItem //ItemSelector
+	//		,(key, item)=> this.getValueFromRow( key ,item )//valueMapperGetter
+	//	);
+
+	//	return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
+	//}
+
 	getStockReportArray( stockArray )
 	{
 		let reportRows = [];
+		let allColumns	= { 'asin': 1, 'seller_id':1, 'id':1 };
+
 		stockArray.forEach((stock)=>
 		{
 			let row = {};
@@ -687,8 +748,8 @@ class Persistence
 			if(!('asin' in stock && 'time' in stock && 'seller_id' in stock ) )
 				return;
 
-			if( this.productUtils.getQty( stock.qty ) == 'Error > 990' )
-				return;
+			//if( this.productUtils.getQty( stock.qty ) == 'Error > 990' )
+			//	return;
 
 			for(let i in stock )
 			{
@@ -705,114 +766,104 @@ class Persistence
 			let key = stock.asin+'_'+row.seller_id;//+'_'+dateString;
 			row.id = key;
 			row[ dateString ] = this.productUtils.getQty( stock.qty );
-
+			allColumns[ dateString ] = 1;
 			reportRows.push( row );
 		});
 
-		let indexFilter = (index)=>
+		let columns = Object.keys( allColumns );
+
+		let valueMapperGetter = ( key, item )=>
 		{
-			let banned = ['qty','id','date','time'];
-			return !banned.some( i=> i === index );
+			return this.getValueFromRow( key, item );
 		};
 
-		let dateRegexp = /\d{4}-\d\d-\d\d/;
-		let arrayReport = this.genericIndexTableGenerator( reportRows, 'id', indexFilter , (a,b)=>
+		let itemSelector = ( oldValue, newValue)=>
 		{
-			if( a=== b )
-				return 0;
+			if( newValue === null || newValue === 'NO FOUND' || newValue === 'Error > 990' || ( (newValue === '""' || newValue === "" ) && oldValue !== null && oldValue !== undefined ) )
+				return oldValue === undefined ? null : oldValue;
 
-			if( a === 'asin' )
-				return -1;
+			return newValue;
+		};
 
-			if( b === 'asin' )
-				return 1;
+		let arrayReport = this.genericIndexTableGenerator
+		(
+			reportRows
+			,'id'
+			,null //itemFilter
+			,columns
+			,itemSelector
+			,valueMapperGetter
+		);
 
-			if( dateRegexp.test( a )  )
-			{
-				if( dateRegexp.test( b ) )
-					return a<b ? -1 : 1;
-
-				return 1;
-			}
-
-			if( dateRegexp.test( b ) )
-			{
-				return -11;
-			}
-
-			return a < b ? -1 : 1;
-
-		});
-
+		arrayReport.splice( 0 ,0 ,columns  );
 		return arrayReport;
 	}
 
 	/*
 	 	genericIndexTableGenerator(
-		[
-			{ id: 1, 'producer':'John','2018-08-01', value:1 }
-			{ id: 1, 'producer':'Jane','2018-08-02', value:2 }
-			{ id: 1, date:'2018-08-03T01:02:03', value:3 }
-			{ id: 2, date:'2018-08-01T01:03:03', value:2 }
-			{ id: 2, date:'2018-08-01T01:02:03', value:2 }
-			{ id: 3, date:'2018-08-02T01:02:03', value:2 }
-			{ id: 4, date:'2018-08-04T01:02:03', value:2 }
-		]
-		,(item)=>{ return item.id+' '+item.producer } //key generator
-		,(column)=>{ if( column == 'date'   }
+		arrayToProccess
+		index_id	'Id of the colum' //Default to i
+		,(old,new)=>{ return isBetter( new, old)  }//Must Replace //Null Replaces old one
+		,(column)=>{ return 'mustAppearColum' == column  } //Filter
 	 */
 
-	genericIndexTableGenerator( array ,index_id ,indexFilter ,indexSort )
+	genericIndexTableGenerator( array ,index_id ,itemFilter, allKeysColumns, itemSelector, valueMapperGetter )
 	{
-		let indexSorter = indexSort && (typeof indexSort === "function" ) ? indexSort : (a,b)=>{ if( a==b ) return 0; return a<b?-1:1;};
-
-
 		let arrayResult = [];
 		let allKeys		= {};
 		let indexes		= {};
+		let valueMapper	= typeof valueMapperGetter  === "function"
+			? valueMapperGetter
+			: (key, item )=> { return key in item ? item[ key ] : null; };
+
+		console.log('allKeysColumns', allKeysColumns );
 
 		array.forEach( item=>
 		{
+			if( item.asin === 'B01HKC9T3Y' )
+				console.log('HEREEEEEE WE GO');
 
-			if( !(index_id in item ) )
+			if( itemFilter !== null && !itemFilter( item ) )
 				return;
 
-			let key = item[ index_id ];
+			let key  = index_id in item ? item[ index_id ] : valueMapperGetter( index_id, item );
+
+			if( key === null )
+				return;
+
+			let selectedItem  = item;
 
 			if( !( key in indexes) )
 			{
-				indexes[ key ] = {};
-			}
-			else
-			{
-				let qty = this.productUtils.getQty( item.qty );
-				if( qty === "NOT FOUND" )
-					return;
+				indexes[ key ] = new Array( allKeysColumns.length );
+				indexes[ key ].fill( null );
 			}
 
-			for(let i in item )
+			let array = indexes[ key ];
+
+			allKeysColumns.forEach((column ,index)=>
 			{
-				allKeys[ i ] = 1;
-				indexes[ key ][ i ]  = i == 'qty' ? '"'+this.productUtils.getQty( item.qty )+'"' : this.getValueFromRow(i, item );
-			}
-		});
+				let value = valueMapperGetter( column, item );
 
-		let allKeysColumns	= Object.keys( allKeys ).filter( indexFilter ).sort( indexSorter );
-		let allValues = Object.values( indexes );
-
-		let emptyArray = [];
-
-		arrayResult.push( allKeysColumns );
-
-		allValues.forEach((item)=>{
-			let row = emptyArray.slice(0);
-			allKeysColumns.forEach((i,index)=>
-			{
-				row[ index ] = i in item ? item[i] : '';
+				if( itemSelector === null || indexes[ key ][ index ] === null  )
+					array[ index ] = value;
+				else
+					array[ index ] = itemSelector( indexes[ key ][ index ], value );
 			});
-			arrayResult.push( row );
 		});
 
-		return arrayResult;
+		return Object.values( indexes );
+
+		//let emptyArray = [];
+		//arrayResult.push( allKeysColumns );
+		//allValues.forEach((item)=>{
+		//	let row = emptyArray.slice(0);
+		//	allKeysColumns.forEach((i,index)=>
+		//	{
+		//		row[ index ] = i in item ? item[i] : '';
+		//	});
+		//	arrayResult.push( row );
+		//});
+		//return arrayResult;
 	}
 }

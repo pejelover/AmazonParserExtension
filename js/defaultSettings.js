@@ -21,6 +21,7 @@ var default_settings = {
 	,page_sellers:
 	{
 		action	: 'do_nothing'
+		,go_to_next	: false
 	}
 	,product_sellers_preferences: {
 	}

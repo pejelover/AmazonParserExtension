@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded',()=>
 		document.getElementById('saveSettingsButton').addEventListener('click',()=>
 		{
 			let page_sellers	= Utils.form2Object( form );
+			page_sellers.go_to_next = 'go_to_next' in page_sellers;
 			settings.page_sellers = page_sellers;
 
 			persistence.saveSettings( settings ).then(()=>
