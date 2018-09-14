@@ -37,74 +37,88 @@ document.addEventListener('DOMContentLoaded', function()
 		if( date1String )
 		{
 			date1 = new Date( date1String );
-			//date1.setMinutes( date1.getMinutes()-date1.getTimezoneOffset() );
-			//date1String = date1.toISOString();
 		}
 
 		if( date2String )
 		{
 			date2 = new Date( date2String );
-			//date2.setMinutes( date2.getMinutes() - date2.getTimezoneOffset() );
-			//date2String = date2.toISOString();
 		}
 
-		if( type === 'backup' )
+		switch( type )
 		{
-			persistence.getStockList( date1, date2 ).then((stockArray)=>
+			case 'Basic Info'	:
 			{
-				let s = persistence.getStockReport2( stockArray );
-				download('hello.csv', s );
-			})
-			.catch((e)=>
-			{
-				console.error( e );
-			});
-			return;
-		}
-
-
-		persistence.getProductList( date1, date2 ).then((products)=>
-		{
-			console.log('All products',products.length );
-
-			switch( type )
-			{
-				case 'Basic Info'	:
+				persistence.getProductList( date1, date2 )
+				.then((products)=>
 				{
 					let s = persistence.generateRawReport( products );
 					download('something.csv',s );
-					break;
-				}
-				case 'products_without_stock':
+				})
+				.catch((e)=>
+				{
+					console.log( e );
+					Utils.alert('An error occorred');
+				});
+				break;
+			}
+			case 'products_without_stock':
+			{
+				persistence.getProductList( date1, date2 ).then((products)=>
 				{
 					//let s = persistence.generateProductsNoStock( products );
 					let s = persistence.generateRawReport( products );
 					download('something.csv',s);
-					break;
-				}
-				case 'historic_stock':
+				})
+				.catch((e)=>
 				{
-					let s = persistence.generateHistoricReportByDays( products );//generateHistoricStockReport( products, date1String, date2String );
+					console.log( e );
+					Utils.alert('An error occorred');
+				});
+				break;
+			}
+			case 'preferences_historic_stock':
+			{
+				persistence.getSettings()
+				.then((settings)=>
+				{
+					return persistence.getStockList( date1, date2 ).then(( stockArray )=>
+					{
+						let date = new Date();
+						let filename = 'Historic_stock_'+(date.toISOString().substring(0,10) )+'.csv';
+						let s = persistence.getStockReport2( stockArray, settings.product_sellers_preferences );
+						download( filename, s );
+					});
+				})
+				.catch((e)=>
+				{
+					console.error( e );
+				});
+				break;
+			}
+			case 'historic_stock':
+			{
+				persistence.getStockList( date1, date2 ).then((stockArray)=>
+				{
 					let date = new Date();
 					let filename = 'Historic_stock_'+(date.toISOString().substring(0,10) )+'.csv';
-					download(filename,s);
-					break;
-				}
-				case 'historic_price':
+					let s = persistence.getStockReport2( stockArray );
+					download( filename, s );
+				})
+				.catch((e)=>
 				{
-					let s = persistence.generateHistoricPriceReport( products );
-					let date = new Date();
-					let filename= 'Historic_price_'+(date.toISOString().substring(0,10) )+'.csv';
-					download(filename,s);
-					break;
-				}
-				case 'backup':
-				{
-					let s = persistence.getStockReport2( products );
-					download('hello.csv', s );
-				}
+					console.error( e );
+				});
+				break;
 			}
-		});
+			case 'historic_price':
+			{
+				let s = persistence.generateHistoricPriceReport( products );
+				let date = new Date();
+				let filename= 'Historic_price_'+(date.toISOString().substring(0,10) )+'.csv';
+				download(filename,s);
+				break;
+			}
+		}
 	});
 
 	function download(filename, text)

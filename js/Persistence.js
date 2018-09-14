@@ -340,7 +340,18 @@ class Persistence
 		return s;
 	}
 
-	generateHistoricStockReport( productsArray, date1String, date2String )
+
+	generatePreferencesSellersHistoricStockReport( productsArray, date1String, date2String )
+	{
+			return this.getSettings()
+			.then((settings)=>
+			{
+				return this.generateHistoricStockReport( productsArray, date1String, date2String, settings.product_sellers_preferences );
+				//settings.product_sellers_preferences; //{ asin: [ sellers ids], .... }
+			});
+	}
+
+	generateHistoricStockReport( productsArray, date1String, date2String, product_sellers_preferences )
 	{
 		let keys 		= Object.keys( this.getValidHistoricStockKeys() );
 
@@ -354,7 +365,6 @@ class Persistence
 
 			if(!( 'producer' in product ) )
 				product.producer = '';
-
 
 
 			let row = [];
@@ -704,9 +714,9 @@ class Persistence
 		return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
 	}
 
-	getStockReport2( productsArray )
+	getStockReport2( productsArray, product_sellers_preferences )
 	{
-		let array = this.getStockReportArray( productsArray );
+		let array = this.getStockReportArray( productsArray, product_sellers_preferences );
 		let s = '';
 
 		array.forEach(i=>
@@ -736,7 +746,7 @@ class Persistence
 	//	return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
 	//}
 
-	getStockReportArray( stockArray )
+	getStockReportArray( stockArray, product_sellers_preferences )
 	{
 		let reportRows = [];
 		let allColumns	= { 'asin': 1, 'seller_id':1, 'id':1 };
@@ -746,6 +756,9 @@ class Persistence
 			let row = {};
 
 			if(!('asin' in stock && 'time' in stock && 'seller_id' in stock ) )
+				return;
+
+			if( product_sellers_preferences && stock.asin in product_sellers_preferences && product_sellers_preferences[ stock.asin ] !== stock.seller_id )
 				return;
 
 			//if( this.productUtils.getQty( stock.qty ) == 'Error > 990' )
