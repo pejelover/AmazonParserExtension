@@ -91,8 +91,18 @@ class Persistence
 			if( 'qty' in stock && 'time' in stock && 'seller_id' in stock )
 			{
 				if( stock.seller_id === 'amazon.com' )
+				{
 					stock.seller_id = 'ATVPDKIKX0DER';
-				prev.push( stock );
+					stock.is_prime = true;
+				}
+				if( 'is_prime' in stock  )
+				{
+					prev.push( stock );
+				}
+				else
+				{
+					console.log( 'Stock '+stock.asin+'_'+stock.seller_id+' doestn have is_prime'+JSON.stringify( stock ) );
+				}
 			}
 			return prev;
 		},[]);
@@ -104,6 +114,26 @@ class Persistence
 	{
 		let filtered = offersArray.filter( offer => 'price' in offer && 'time' in offer );
 		return this.database.updateItems( 'offers', filtered );
+	}
+
+	getOffers(date1,data2Keys)
+	{
+		return this.database.getAll('offers',{});
+	}
+
+	getOffersByOptions( options )
+	{
+		return this.database.getAll('offers',options );
+	}
+
+	getOffersKeys(date1,data2Keys)
+	{
+		return this.database.getAllKeys('offers',{});
+	}
+
+	getOffersCount(date1,data2Keys)
+	{
+		return this.database.count('offers',{});
 	}
 
 	updateProduct( product )
@@ -150,7 +180,6 @@ class Persistence
 				return Promise.resolve( product );
 			//return this.put('products', product );
 		});
-
 	}
 
 	sortProductList( list )
@@ -369,7 +398,8 @@ class Persistence
 
 			let row = [];
 
-			try{
+			try
+			{
 			if( !( 'stock' in product) || product.stock.length === 0 )
 			{
 
@@ -469,6 +499,9 @@ class Persistence
 	{
 		if( key in obj )
 		{
+			if( typeof obj[ key ] === 'boolean' )
+				return obj[ key ] ? 1 : 0;
+
 			return  typeof obj[ key ] === 'string'
 				? '"'+obj[ key ].trim().replace(/"/g, '""' ).replace(/\s+/g,' ')+'"'
 				: obj[ key ];
@@ -749,13 +782,13 @@ class Persistence
 	getStockReportArray( stockArray, product_sellers_preferences )
 	{
 		let reportRows = [];
-		let allColumns	= { 'asin': 1, 'seller_id':1, 'id':1 };
+		let allColumns	= { 'asin': 1, 'seller_id':1, 'id':1, 'is_prime' : 1 };
 
 		stockArray.forEach((stock)=>
 		{
 			let row = {};
 
-			if(!('asin' in stock && 'time' in stock && 'seller_id' in stock ) )
+			if(!('asin' in stock && 'time' in stock && 'seller_id' in stock) )
 				return;
 
 			if( product_sellers_preferences && stock.asin in product_sellers_preferences && product_sellers_preferences[ stock.asin ] !== stock.seller_id )
@@ -776,7 +809,7 @@ class Persistence
 
 			date2.setTime( date.getTime() );
 			let dateString = date2.getFullYear()+'-'+f( date2.getMonth()+1 )+'-'+f( date2.getDate() );
-			let key = stock.asin+'_'+row.seller_id;//+'_'+dateString;
+			let key = stock.asin+'_'+row.seller_id+'_'+( stock.is_prime? 1 : 0 );
 			row.id = key;
 			row[ dateString ] = this.productUtils.getQty( stock.qty );
 			allColumns[ dateString ] = 1;

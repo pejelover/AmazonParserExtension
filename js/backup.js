@@ -2,29 +2,75 @@ document.addEventListener('DOMContentLoaded', function()
 {
 	//var ext = new Client();
 	let persistence = new Persistence();
-	persistence.init()
-	.then(()=>
+
+	persistence.init().then(()=>
 	{
-
-		let productPromise = persistence.getProductList( null, null ).then((productList)=>
+		let productPromise = PromiseUtils.resolveAfter(1, 15000 )
+		.then(()=>
 		{
-
-			return persistence.getStockList( null, null )
-			.then(( stockList )=>
+			return persistence.getProductList( null, null ).then((productList)=>
 			{
-				return Promise.resolve({products: productList, stock: stockList });
+				let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });
+
+				let date = new Date();
+				let anchor= Utils.getById("backupProducts");
+				anchor.setAttribute('download', 'PRODUCTS_backup_'+date.toISOString()+'.json');
+				anchor.setAttribute('href', href );
+				anchor.textContent = 'Backup_Products'+date.toISOString();
+
+				return persistence.getStockList( null, null );
 			});
 		})
-		.then(( results )=>{
-
-			let href = persistence.getDownloadHref( results );
+		.then(( stock )=>
+		{
+			let href = persistence.getDownloadHref({ products: [], stock: stock, offers: []});
 
 			let date = new Date();
-			let anchor= Utils.getById("backupLink");
-
-			anchor.setAttribute('download', 'backup'+date.toISOString()+'.json');
+			let anchor= Utils.getById("backupStock");
+			anchor.setAttribute('download', 'STOCK_backup_'+date.toISOString()+'.json');
 			anchor.setAttribute('href', href );
-			anchor.textContent = date.toISOString();
+			anchor.textContent = 'Backup_Stock'+date.toISOString();
+
+			return persistence.getOffersCount( null, null );
+		})
+		.then(( offers )=>{
+
+			console.log('It has offers ', offers );
+
+			let start 	= 1;
+			let count	= offers/100000;
+
+			if( count !== Math.floor( count ) )
+				count = Math.floor( count )+1;
+
+			let times =new Array( count );
+			times.fill(0);
+			let allRecords = [];
+
+			let generator = ()=>
+			{
+				return persistence.getOffersByOptions({'>=':start, 'count' : 100000 }).then((all)=>
+				{
+					start = all[ all.length-1 ].id;
+					allRecords.push( ...all );
+					return Promise.resolve( 1 );
+				});
+			};
+
+			return PromiseUtils.runSequential( times, generator ).then(()=>
+			{
+				return allRecords;
+			});
+		})
+		.then((allRecords)=>
+		{
+			let href = persistence.getDownloadHref({ products: [], stock: [] , offers: allRecords });
+			let date = new Date();
+			let anchor= Utils.getById("backupOffers");
+			anchor.setAttribute('download', 'OFFERS_backup'+date.toISOString()+'.json');
+			anchor.setAttribute('href', href );
+			anchor.textContent = 'Backup_Offers'+date.toISOString();
+			//return persistence.getOffers( null, null );
 		})
 		.catch((e)=>
 		{
@@ -53,6 +99,10 @@ document.addEventListener('DOMContentLoaded', function()
 					return persistence.saveProductLists( obj.products ).then(()=>
 					{
 						return persistence.addStock( obj.stock );
+					})
+					.then(()=>
+					{
+						return persistence.addOffers( obj.offers );
 					})
 					.then((result)=>
 					{
