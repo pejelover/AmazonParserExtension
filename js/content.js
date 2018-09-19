@@ -214,6 +214,7 @@ function parseCart()
 	})
 	.catch((e)=>
 	{
+		console.log( e );
 		console.error('Error on parse cart', e );
 	});
 }

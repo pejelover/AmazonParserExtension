@@ -3,6 +3,110 @@ document.addEventListener('DOMContentLoaded', function()
 	//var ext = new Client();
 	let persistence = new Persistence();
 
+	Utils.getById('backupGenerateBackupFile').addEventListener('click',()=>
+	{
+
+		let type = Utils.getById('backupType').value;
+
+		switch( type )
+		{
+			case 'Products':
+			{
+				persistence.getProductList( null, null ).then((productList)=>
+				{
+					let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });
+					let date = new Date();
+					Utils.getById('backupStatus').innerHTML = '';
+
+					let anchor = Document.createElement('a');
+					anchor.setAttribute('download', 'PRODUCTS_backup_'+date.toISOString()+'.json');
+					anchor.setAttribute('href', href );
+					anchor.textContent = 'Backup_Products'+date.toISOString();
+					anchor.classList.add('button');
+
+					Utils.getById('backupStatus').appendElement( anchor );
+
+					return persistence.getStockList( null, null );
+				})
+				.catch((e)=>
+				{
+					Utils.alert('An error occurred please check logs');
+				});
+
+				break;
+			}
+			case 'Offers':
+			{
+				persistence.getOffersCount( null, null ).then((offersCount)=>
+				{
+					let start 	= 1;
+					let count	= offersCount/100000;
+
+					if( count !== Math.floor( count ) )
+						count = Math.floor( count )+1;
+
+					let times =new Array( count );
+					times.fill(0);
+					let allRecords = [];
+
+					let generator = ()=>
+					{
+						return persistence.getOffersByOptions({'>=':start, 'count' : 100000 }).then((all)=>
+						{
+							start = all[ all.length-1 ].id;
+							allRecords.push( ...all );
+							return Promise.resolve( 1 );
+						});
+					};
+
+					return PromiseUtils.runSequential( times, generator ).then(()=>
+					{
+						return Promise.resolve( 1 );
+					})
+					.then(()=>
+					{
+						let href = persistence.getDownloadHref({ products: [], stock: [] , offers: allRecords });
+						let date = new Date();
+
+						let anchor = Document.createElement('a');
+						anchor.setAttribute('download', 'OFFERS_backup'+date.toISOString()+'.json');
+						anchor.setAttribute('href', href );
+						anchor.textContent = 'Backup_Offers'+date.toISOString();
+						anchor.classList.add('button');
+						Utils.getById('backupStatus').appendElement( anchor );
+					});
+				})
+				.catch((e)=>
+				{
+					console.log( e );
+					Utils.alert('An error occourred please check the logs');
+				});
+
+				break;
+			}
+			case 'Stock':
+			{
+				return persistence.getStockList( null, null ).then((stock)=>
+				{
+						let href = persistence.getDownloadHref({ products: [], stock: stock, offers: []});
+						Utils.getById('backupStatus').innerHTML = '';
+						let date = new Date();
+
+						let anchor = Document.createElement('a');
+						anchor.setAttribute('download', 'STOCK_backup_'+date.toISOString()+'.json');
+						anchor.setAttribute('href', href );
+						anchor.textContent = 'Backup_Stock'+date.toISOString();
+						anchor.classList.add('button');
+						Utils.getById('backupStatus').appendElement( anchor );
+				})
+				.catch((e)=>
+				{
+					Utils.alert('An error occurred please try again later');
+				});
+			}
+		}
+	});
+
 	persistence.init().then(()=>
 	{
 		let productPromise = PromiseUtils.resolveAfter(1, 15000 )

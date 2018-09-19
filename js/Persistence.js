@@ -88,6 +88,7 @@ class Persistence
 	{
 		let filtered = stockArray.reduce( (prev,stock) =>
 		{
+
 			if( 'qty' in stock && 'time' in stock && 'seller_id' in stock )
 			{
 				if( stock.seller_id === 'amazon.com' )
@@ -95,6 +96,21 @@ class Persistence
 					stock.seller_id = 'ATVPDKIKX0DER';
 					stock.is_prime = true;
 				}
+
+				if( /Currently unavailable/.test( stock.qty ) )
+				{
+					stock.is_prime = true;
+					let nS = {};
+
+					for(let i in stock )
+					{
+						nS[i] = stock[i];
+					}
+
+					stock.is_prime = false;
+					prev.push( nS );
+				}
+
 				if( 'is_prime' in stock  )
 				{
 					prev.push( stock );
@@ -747,6 +763,25 @@ class Persistence
 		return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
 	}
 
+
+	optimizeStock(start, count)
+	{
+
+		let allKeys = {};
+		let toDelete = [];
+
+		return this.database.getAll('stock',{ '>': start, 'count': count })
+		.then((stockList)=>
+		{
+
+
+		})
+		.then(()=>
+		{
+
+		});
+	}
+
 	getStockReport2( productsArray, product_sellers_preferences )
 	{
 		let array = this.getStockReportArray( productsArray, product_sellers_preferences );
@@ -808,6 +843,7 @@ class Persistence
 			let f = i=> i<10?'0'+i:i;
 
 			date2.setTime( date.getTime() );
+
 			let dateString = date2.getFullYear()+'-'+f( date2.getMonth()+1 )+'-'+f( date2.getDate() );
 			let key = stock.asin+'_'+row.seller_id+'_'+( stock.is_prime? 1 : 0 );
 			row.id = key;
