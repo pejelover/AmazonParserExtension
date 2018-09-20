@@ -3,8 +3,9 @@ document.addEventListener('DOMContentLoaded', function()
 	//var ext = new Client();
 	let persistence = new Persistence();
 
-	Utils.getById('backupGenerateBackupFile').addEventListener('click',()=>
+	Utils.getById('backupGenerateBackupFile').addEventListener('click',(evt)=>
 	{
+		Utils.stopEvent( evt );
 
 		let type = Utils.getById('backupType').value;
 
@@ -18,18 +19,19 @@ document.addEventListener('DOMContentLoaded', function()
 					let date = new Date();
 					Utils.getById('backupStatus').innerHTML = '';
 
-					let anchor = Document.createElement('a');
+					let anchor = window.document.createElement('a');
 					anchor.setAttribute('download', 'PRODUCTS_backup_'+date.toISOString()+'.json');
 					anchor.setAttribute('href', href );
 					anchor.textContent = 'Backup_Products'+date.toISOString();
 					anchor.classList.add('button');
 
-					Utils.getById('backupStatus').appendElement( anchor );
+					Utils.getById('backupStatus').append( anchor );
 
 					return persistence.getStockList( null, null );
 				})
 				.catch((e)=>
 				{
+					console.log( e );
 					Utils.alert('An error occurred please check logs');
 				});
 
@@ -66,14 +68,16 @@ document.addEventListener('DOMContentLoaded', function()
 					.then(()=>
 					{
 						let href = persistence.getDownloadHref({ products: [], stock: [] , offers: allRecords });
-						let date = new Date();
+						Utils.getById('backupStatus').innerHTML = '';
 
-						let anchor = Document.createElement('a');
+						let date = new Date();
+						let anchor = window.document.createElement('a');
 						anchor.setAttribute('download', 'OFFERS_backup'+date.toISOString()+'.json');
 						anchor.setAttribute('href', href );
 						anchor.textContent = 'Backup_Offers'+date.toISOString();
 						anchor.classList.add('button');
-						Utils.getById('backupStatus').appendElement( anchor );
+
+						Utils.getById('backupStatus').append( anchor );
 					});
 				})
 				.catch((e)=>
@@ -92,12 +96,13 @@ document.addEventListener('DOMContentLoaded', function()
 						Utils.getById('backupStatus').innerHTML = '';
 						let date = new Date();
 
-						let anchor = Document.createElement('a');
+
+						let anchor = window.document.createElement('a');
 						anchor.setAttribute('download', 'STOCK_backup_'+date.toISOString()+'.json');
 						anchor.setAttribute('href', href );
 						anchor.textContent = 'Backup_Stock'+date.toISOString();
 						anchor.classList.add('button');
-						Utils.getById('backupStatus').appendElement( anchor );
+						Utils.getById('backupStatus').append( anchor );
 				})
 				.catch((e)=>
 				{

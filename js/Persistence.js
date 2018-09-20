@@ -385,7 +385,6 @@ class Persistence
 		return s;
 	}
 
-
 	generatePreferencesSellersHistoricStockReport( productsArray, date1String, date2String )
 	{
 			return this.getSettings()
@@ -416,54 +415,54 @@ class Persistence
 
 			try
 			{
-			if( !( 'stock' in product) || product.stock.length === 0 )
-			{
-
-				keys.forEach((key)=>
+				if( !( 'stock' in product) || product.stock.length === 0 )
 				{
-					if( key === "producer " || key == "asin" || key === "title" )
-					{
-						row.push( this.getValueFromRow( key, product ) );
-					}
-					else
-					{
-						row.push( '""' );
-					}
-				});
 
-				console.log(",");
-				s+= row.join('\t')+'\n';
-			}
-			else
-			{
-				product.stock.forEach((stock)=>
-				{
-					row = [];
 					keys.forEach((key)=>
 					{
-
-
-						if( key == "asin" || key == "producer" || key == "title" || key == "url" )
+						if( key === "producer " || key == "asin" || key === "title" )
 						{
 							row.push( this.getValueFromRow( key, product ) );
-							return;
 						}
-
-
-						if( key === "qty" )
+						else
 						{
-							row.push( this.productUtils.getQty( stock.qty  ));
-							return;
+							row.push( '""' );
 						}
-
-						row.push( this.getValueFromRow( key, stock ) );
 					});
 
+					console.log(",");
 					s+= row.join('\t')+'\n';
-				});
+				}
+				else
+				{
+					product.stock.forEach((stock)=>
+					{
+						row = [];
+						keys.forEach((key)=>
+						{
 
+
+							if( key == "asin" || key == "producer" || key == "title" || key == "url" )
+							{
+								row.push( this.getValueFromRow( key, product ) );
+								return;
+							}
+
+							if( key === "qty" )
+							{
+								row.push( this.productUtils.getQty( stock.qty  ));
+								return;
+							}
+
+							row.push( this.getValueFromRow( key, stock ) );
+						});
+
+						s+= row.join('\t')+'\n';
+					});
+
+				}
 			}
-			}catch(e)
+			catch(e)
 			{
 				console.error('ON catch for stock', e );
 				s+='\n';
@@ -704,7 +703,7 @@ class Persistence
 		let allColumns			= {
 			'asin'	: 0
 			,'seller_id' : 1
-			,'key': 1
+			,'key': 2
 		};
 
 		let transformedObjects	= [];
@@ -724,7 +723,7 @@ class Persistence
 			let fObject = { id: offer.asin+'-'+offer.seller_id, asin: offer.asin, seller_id: offer.seller_id };
 			fObject[ dateString ] = offer.price;
 			transformedObjects.push(  fObject );
-			allKeysColumns[ dateString ] = Object.object( allColumns ).length;
+			allColumns[ dateString ] = Object.keys( allColumns ).length;
 		});
 
 
@@ -733,10 +732,10 @@ class Persistence
 			if( a === b )
 				return 0;
 
-			return allKeysColumns[ a ] < allKeysColumns[ b ] ? -1 : 1;
+			return allColumns[ a ] < allColumns[ b ] ? -1 : 1;
 		};
 
-		let columns = Object.values( allKeysColumns ).sort( columnSorter );
+		let columns = Object.values( allColumns ).sort( columnSorter );
 
 		let itemFilter		= null;
 
@@ -753,34 +752,79 @@ class Persistence
 			priceArray //array
 			,'id' //index_id
 			,itemFilter
-			,allKeysColumns
+			,columns
 			,itemSelector
 			,valueMapperGetter
 		);
 
 		finalArray.splice( 0, 0, columns );
 
-		return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
+		return finalArray.reduce( (prev, item ) => {  return prev + item.join(",")+"\n"; }, '' );
 	}
 
 
 	optimizeStock(start, count)
 	{
-
 		let allKeys = {};
 		let toDelete = [];
+		let last_id = null;
 
 		return this.database.getAll('stock',{ '>': start, 'count': count })
 		.then((stockList)=>
 		{
+			stockList.forEach(( stock )=>
+			{
+				//2018-08-30T16:11:00.000Z
+				let key = stock.time.substring(0,15)+stock.asin+stock.seller_id+( stock.is_prime? 1 : 0 );
 
+				if( key in allKeys )
+				{
+					let oldValue = this.productUtils.getQty( allKeys[ key ].qty );
+					let newValue = this.productUtils.getQty( stock.qty );
+					let bestValue = this.getQtyABestValue( oldValue, newValue );
 
+					if(  bestValue === newValue )
+					{
+						toDelete.push( allKeys[ key ].id );
+						allKeys[ key ] = stock;
+						last_id = stock.id;
+					}
+					else
+					{
+						toDelete.push( stock.id );
+					}
+				}
+				else
+				{
+					allKeys[ key ] = stock;
+					last_id = stock.id;
+				}
+			});
+
+			return this.database.deleteByKeyIds('stock',toDelete );
 		})
 		.then(()=>
 		{
-
+			return last_id;
 		});
 	}
+
+	getQtyABestValue( newValue, oldValue )
+	{
+		if( oldValue === undefined || oldValue === null )
+			return newValue === undefined ? null : newValue;
+
+		if( newValue === null
+			|| newValue === undefined
+			|| newValue === 'NO FOUND'
+			|| newValue === 'Error > 990'
+			|| ( (newValue === '""' || newValue === "" ) && oldValue !== null && oldValue !== undefined ) )
+				return oldValue === undefined ? null : oldValue;
+
+		return newValue;
+	}
+
+
 
 	getStockReport2( productsArray, product_sellers_preferences )
 	{
@@ -859,21 +903,13 @@ class Persistence
 			return this.getValueFromRow( key, item );
 		};
 
-		let itemSelector = ( oldValue, newValue)=>
-		{
-			if( newValue === null || newValue === 'NO FOUND' || newValue === 'Error > 990' || ( (newValue === '""' || newValue === "" ) && oldValue !== null && oldValue !== undefined ) )
-				return oldValue === undefined ? null : oldValue;
-
-			return newValue;
-		};
-
 		let arrayReport = this.genericIndexTableGenerator
 		(
 			reportRows
 			,'id'
 			,null //itemFilter
 			,columns
-			,itemSelector
+			,this.getQtyABestValue//ItemSelector
 			,valueMapperGetter
 		);
 
@@ -902,9 +938,6 @@ class Persistence
 
 		array.forEach( item=>
 		{
-			if( item.asin === 'B01HKC9T3Y' )
-				console.log('HEREEEEEE WE GO');
-
 			if( itemFilter !== null && !itemFilter( item ) )
 				return;
 

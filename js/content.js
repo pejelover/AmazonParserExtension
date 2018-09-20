@@ -38,7 +38,7 @@ var last_url = window.location.href;
 
 function checkForRobots()
 {
-	return PromiseUtils.resolveAfter( 400 ,1)
+	return PromiseUtils.resolveAfter( 2000 ,1)
 	.then(()=>
 	{
 		let robotsRegex =/Robot\s+Check/i;

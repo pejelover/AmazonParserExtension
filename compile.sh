@@ -1,4 +1,4 @@
-java -jar /bin/closure-compiler-v20180805.jar  \
+java -jar /home/pejelover/bin/closure-compiler-v20180805.jar  \
 --compilation_level SIMPLE  \
 --warning_level VERBOSE  \
 --js_output_file a.js \
