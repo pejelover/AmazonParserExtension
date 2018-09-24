@@ -6,7 +6,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 14
+			,version	: 15
 			,stores		:{
 				products:
 				{
@@ -19,6 +19,15 @@ class Persistence
 						,{ indexName: 'search'	,keyPath:'search'	,objectParameters: { uniq: false ,multiEntry: true} }
 						,{ indexName: 'parsedDates'	,keyPath:'parsedDates', objectParameters: { uniq: false ,multiEntry: true} }
 						,{ indexName: 'parsed'	,keyPath:'parsed', objectParameters: { uniq: false ,multiEntry: false} }
+					]
+				}
+				,notFound:
+				{
+					keyPath: 'id'
+					,autoincrement: true
+					,indexes	:
+					[
+						{ indexName: 'asin', keyPath:'asin', objectParameters:{ uniq: false, multiEntry: false}  }
 					]
 				}
 				,stock:
@@ -73,7 +82,6 @@ class Persistence
 
 		//this.database.init();
 	}
-
 	init()
 	{
 		return this.database.init();
@@ -82,6 +90,11 @@ class Persistence
 	updateUrl( url )
 	{
 		return this.database.put( 'urls', url );
+	}
+
+	addNotFound( notFoundObj )
+	{
+		return this.database.put('notFound', notFoundObj );
 	}
 
 	addStock( stockArray )
@@ -154,7 +167,12 @@ class Persistence
 
 	updateProduct( product )
 	{
-		return this.database.get('products' ,product.asin ).then(( oldProduct )=>
+		return this.database.get('products' ,product.asin )
+		.catch((error)=>
+		{
+			return product;
+		})
+		.then(( oldProduct )=>
 		{
 			if( oldProduct )
 				this.productUtils.mergeProducts( oldProduct, product );
@@ -167,24 +185,6 @@ class Persistence
 			{
 				console.error( e );
 			}
-
-			if( product.offers.length === 0 )
-			{
-				if( product.price )
-				{
-					let date = new Date( product.parsed );
-
-					let offer = {
-						price	: product.price
-						,time	: date.toISOString()
-					};
-
-					product.offers.push( offer );
-				}
-			}
-
-			if( 'versions' in product )
-				delete product.versions;
 
 			return this.database.put('products', product );
 		})
@@ -208,6 +208,7 @@ class Persistence
 
 	updateProductLists(list)
 	{
+		console.log("Update ProductList");
 		return PromiseUtils.runSequential( list, (newProduct,index)=>
 		{
 			return this.updateProduct( newProduct );
@@ -219,22 +220,73 @@ class Persistence
 		return this.database.updateItems('products', list );
 	}
 
+	getAllIncremental( storeName, options , indexName )
+	{
+		console.log( options );
+
+		return this.database.count(storeName, {}).then((offersCount)=>
+		{
+			let all = [];
+			let newOptions = {};
+
+			for(let i in options )
+			{
+				newOptions[ i ] = options[ i ];
+			}
+
+			if( !('count' in newOptions ) )
+			{
+				newOptions.count = 100000;
+			}
+
+
+			let start 	= 1;
+			let count	= offersCount/newOptions.count;
+
+			if( count !== Math.floor( count ) )
+				count = Math.floor( count )+1;
+
+			let times =new Array( count );
+			times.fill(0);
+			let allRecords = [];
+
+			let generator = ()=>
+			{
+				return this.database.getAll('stock', newOptions ).then((all)=>
+				{
+					newOptions[ '>=' ] = all[ all.length-1 ][ indexName ];
+					console.log('Start', newOptions[indexName ] );
+					allRecords.push( ...all );
+					return Promise.resolve( 1 );
+				});
+			};
+
+			return PromiseUtils.runSequential( times, generator )
+			.then(()=>
+			{
+				return Promise.resolve( allRecords );
+			});
+		});
+	}
+
 	getStockList( date1, date2 )
 	{
-		let options = {};
+		let start = '2018-07-20T05:26:00.000Z';
+
+		let options = { 'index' : 'time', '>=' : start };
+
 		if( date1 )
 		{
-			options.index = 'time';
 			options['>='] = date1.toISOString();
 		}
 
 		if( date2 )
 		{
-			options.index = 'time';
 			options['<='] = date2.toISOString();
 		}
 
-		return this.database.getAll('stock', options );
+		return this.getAllIncremental('stock',options,'time');
+		//return this.database.getAll('stock', options );
 	}
 
 	getProductList( date1, date2 )
@@ -809,7 +861,7 @@ class Persistence
 		});
 	}
 
-	getQtyABestValue( newValue, oldValue )
+	getQtyABestValue(  oldValue ,newValue)
 	{
 		if( oldValue === undefined || oldValue === null )
 			return newValue === undefined ? null : newValue;
@@ -823,8 +875,6 @@ class Persistence
 
 		return newValue;
 	}
-
-
 
 	getStockReport2( productsArray, product_sellers_preferences )
 	{
@@ -936,10 +986,13 @@ class Persistence
 
 		console.log('allKeysColumns', allKeysColumns );
 
-		array.forEach( item=>
+		array.forEach( (item, itemIndex )=>
 		{
 			if( itemFilter !== null && !itemFilter( item ) )
 				return;
+
+			if( itemIndex === 3600 )
+				console.log( 'Here');
 
 			let key  = index_id in item ? item[ index_id ] : valueMapperGetter( index_id, item );
 
@@ -954,16 +1007,16 @@ class Persistence
 				indexes[ key ].fill( null );
 			}
 
-			let array = indexes[ key ];
+			let itemArray = indexes[ key ];
 
 			allKeysColumns.forEach((column ,index)=>
 			{
 				let value = valueMapperGetter( column, item );
 
 				if( itemSelector === null || indexes[ key ][ index ] === null  )
-					array[ index ] = value;
+					itemArray[ index ] = value;
 				else
-					array[ index ] = itemSelector( indexes[ key ][ index ], value );
+					itemArray[ index ] = itemSelector( indexes[ key ][ index ], value );
 			});
 		});
 

@@ -60,6 +60,12 @@ function checkForRobots()
 				interval_id = setInterval( lambda, 5000 );
 			});
 		}
+		else if( /Page Not Found/.test( document.title ) )
+		{
+			let asin = parser.getAsinFromUrl( window.location.href );
+			client.executeOnBackground('PageNotFound',{ asin: asin });
+			client.closeThisTab();
+		}
 
 		return Promise.resolve( true );
 	});
@@ -303,6 +309,7 @@ function parseVendorsPage()
 								asin: p.asin
 								,time: parser.productUtils.date.toISOString()
 								,qty: "NOT FOUND"
+								,is_prime: false
 								,seller_id: settings.product_sellers_preferences[ p.asin ][0]
 								,date: parser.productUtils.date.getFullYear()+"-"+x( parser.productUtils.date.getMonth()+1)+"-"+x( parser.productUtils.date.getDate() )
 							}]);
@@ -352,6 +359,7 @@ function parse()
 			parseCart();
 			break;
 		}
+		case "HANDLE_BUY_BOX":
 		case "PREVIOUS_TO_CART_PAGE":
 		{
 			/*
@@ -364,6 +372,8 @@ function parse()
 
 			if( settings.page_previous_cart.action !== 'do_nothing' )
 			{
+				console.log('Content::P2CHE',parser.prev2cart.hasError() );
+
 				if( parser.prev2cart.hasError() )
 				{
 					window.history.back();
@@ -438,7 +448,7 @@ if(  window.location.hostname === 'www.amazon.com' )
 		};
 
 		if( checkInterval === null )
-			setInterval( checkUrl, 300 );
+			setInterval( checkUrl, 1000 );
 	});
 
 

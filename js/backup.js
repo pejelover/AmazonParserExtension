@@ -13,7 +13,10 @@ document.addEventListener('DOMContentLoaded', function()
 		{
 			case 'Products':
 			{
-				persistence.getProductList( null, null ).then((productList)=>
+
+				let start = '2018-07-20T05:26:00.000Z';
+
+				return this.getAllIncremental('stock',{index: 'time', '>=': start },'time');
 				{
 					let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });
 					let date = new Date();

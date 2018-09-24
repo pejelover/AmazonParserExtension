@@ -24,6 +24,12 @@ persistence.init()
 var ext			= new Server();
 
 
+ext.addListener('PageNotFound',(url,request,tab_id )=>
+{
+	let date = new Date();
+	persistence.addNotFound({ asin: request.asin, url: url, time : date.toISOString() });
+});
+
 ext.addListener('UrlDetected',(url,request,tab_id)=>
 {
 	persistence.updateUrl( request ).then(()=>
@@ -76,14 +82,14 @@ ext.addListener('ProductsFound',(url,request,tab_id)=>
 {
 	if( Array.isArray( request ) && request.length )
 	{
-		let offers = request.reduce((prev,product)=>
-		{
-			product.offers.forEach( i=> prev.push( i ) );
-			return prev;
-		});
+		//let offers = request.reduce((prev,product)=>
+		//{
+		//	product.offers.forEach( i=> prev.push( i ) );
+		//	return prev;
+		//});
 
-		if( offers.length )
-			persistence.addOffers( offers );
+		//if( offers.length )
+		//	persistence.addOffers( offers );
 
 		console.log('products found', request );
 		persistence.updateProductLists( request );
