@@ -145,7 +145,11 @@ function parseProductPage()
 		}
 		else if( settings.page_product.add_to_cart && seller_match )
 		{
-			parser.productPage.addToCart();
+			parser.productPage.addToCart().then((result)=>
+			{
+				if( !result )
+					parser.productPage.followPageProductOffers();
+			});
 			return;
 		}
 		else if( settings.page_product.goto_sellers_pages )
@@ -160,7 +164,7 @@ function parseProductPage()
 				return parser.productPage.followPageProductOffers();
 			};
 
-			PromiseUtils.tryNTimes( func, 250, 15 ).catch((e)=>
+			PromiseUtils.tryNTimes( func, 500, 10 ).catch((e)=>
 			{
 				console.log( e );
 				//document.body.setAttribute("style","background-color:red");
@@ -175,24 +179,171 @@ function parseProductPage()
 	});
 }
 
+let cart_interval	= -1;
+let cart_blocked	= false;
+
+function cartIntervalFunction()
+{
+	if( cart_blocked )
+		return;
+
+	cart_blocked = true;
+
+	let savedForLater = parser.cartPage.getSaveForLaterCount();
+
+	if( savedForLater > 10 )
+	{
+		document.body.setAttribute('style',"background: red;");
+	}
+
+	let p = parser.cartPage.parseFirstItem();
+
+	if( p !== null )
+	{
+		if( p.stock.length )
+		{
+			client.executeOnBackground('StockFound', p.stock );
+
+			let func	= ()=>
+			{
+				parser.cartPage.removeItemByAsin( p.asin );
+
+				let item = parser.cartPage.getCartItemByAsin( p.asin );
+
+				return  item !== null;
+			};
+
+			PromiseUtils.tryNTimes( func, 500, 12 )
+			.catch((e)=>
+			{
+				console.log('It fails to remove element from cart');
+			})
+			.finally(()=>
+			{
+				cart_blocked = false;
+			});
+			return;
+		}
+		else
+		{
+			parser.cartPage.parseItemProcess( null )
+			.then(( product )=>
+			{
+				client.executeOnBackground('StockFound', product.stock );
+				parser.cartPage.removeItemByAsin( product.asin );
+
+				return PromiseUtils.tryNTimes(()=>
+				{
+					let div = parser.cartPage.getCartItemByAsin( product.asin );
+
+					if( div !== null )
+					{
+						parser.cartPage.removeItemByAsin( product.asin );
+						return false;
+					}
+
+					return true;
+				},300, 14);
+			})
+			.catch(()=>
+			{
+				console.log('It fails to parse and remove');
+			})
+			.finally(()=>
+			{
+				cart_blocked = false;
+			});
+		}
+
+		return;
+	}
+
+	if( savedForLater > 0 )
+	{
+		let p = parser.cartPage.getSavedForLaterProduct( null );
+
+		if( p !== null && p.stock.length > 0 )
+		{
+			client.executeOnBackground('StockFound', p.stock );
+
+			parser.cartPage.removeSavedForLater( p.asin );
+
+			let fun	= ()=>
+			{
+				let div = parser.cartPage.getSavedForLaterItem( p.asin );
+				if( div == null )
+					return true;
+
+				parser.cartPage.removeSavedForLater( p.asin );
+				return false;
+			};
+
+			PromiseUtils.tryNTimes( fun, 600, 20 )
+			.finally(()=>
+			{
+				cart_blocked = false;
+			});
+			return;
+		}
+
+		parser.cartPage.moveToCartSaveForLater( null );
+		PromiseUtils.resolveAfter( 1000, 1)
+		.finally(()=>
+		{
+			cart_blocked = false;
+		});
+		return;
+	}
+
+	setTimeout(()=>{ location.reload();}, 5000 );
+
+	cart_blocked = false;
+}
+
 function parseCart()
 {
 	checkForRobots().then(()=>
 	{
-
-		let products = parser.cartPage.getProducts();
-
-		let stockArray = products.reduce((array, product)=>
+		if( !settings.page_cart.parse_stock )
 		{
-			product.stock.forEach( a=> array.push( a ) );
-			return array;
-		},[]);
+			let products = parser.cartPage.getProducts();
 
+			let stockArray = products.reduce((array, product)=>
+			{
+				product.stock.forEach( a=> array.push( a ) );
+				return array;
+			},[]);
+
+
+			if( stockArray.length )
+				client.executeOnBackground('StockFound', stockArray );
+		}
+		else
+		{
+			setInterval( cartIntervalFunction, 1000 );
+		}
+	});
+}
+
+function oldParseCart()
+{
+	checkForRobots().then(()=>
+	{
 
 		if( !settings.page_cart.parse_stock )
 		{
+			let products = parser.cartPage.getProducts();
+
+			let stockArray = products.reduce((array, product)=>
+			{
+				product.stock.forEach( a=> array.push( a ) );
+				return array;
+			},[]);
+
+
 			if( stockArray.length )
 				client.executeOnBackground('StockFound', stockArray );
+			return Promise.resolve( true );
 		}
 		else
 		{
@@ -216,7 +367,7 @@ function parseCart()
 	})
 	.then(()=>
 	{
-		setTimeout(()=>{ window.location.reload() }, 20000 );
+		setTimeout(()=>{ window.location.reload(); }, 20000 );
 	})
 	.catch((e)=>
 	{
@@ -246,7 +397,6 @@ function parseSearchPage()
 
 		if( p.length )
 			client.executeOnBackground('ProductsFound', p );
-
 
 	})
 	.catch((error)=>
@@ -425,6 +575,8 @@ let checkInterval = null;
 
 if(  window.location.hostname === 'www.amazon.com' )
 {
+	settingsIntialized = false;
+
 	client.addListener("SettingsArrive",(newSettings)=>
 	{
 		settings	= newSettings;
@@ -432,23 +584,26 @@ if(  window.location.hostname === 'www.amazon.com' )
 		if( settings.parse_status === "parse_disabled" )
 			return;
 
-		parse();
-
-		let checkUrl = ()=>
+		if( !settingsIntialized )
 		{
-			if( last_url !== window.location.href )
-			{
-				last_url = window.location.href;
-				client.executeOnBackground
-				(
-					"UrlDetected"
-					,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
-				);
-			}
-		};
+			parse();
 
-		if( checkInterval === null )
-			setInterval( checkUrl, 1000 );
+			let checkUrl = ()=>
+			{
+				if( last_url !== window.location.href )
+				{
+					last_url = window.location.href;
+					client.executeOnBackground
+					(
+						"UrlDetected"
+						,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
+					);
+				}
+			};
+
+			if( checkInterval === null )
+				setInterval( checkUrl, 1000 );
+		}
 	});
 
 

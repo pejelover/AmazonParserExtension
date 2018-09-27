@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', function()
 
 				let start = '2018-07-20T05:26:00.000Z';
 
-				return this.getAllIncremental('stock',{index: 'time', '>=': start },'time');
+				return persistence.getAllIncremental('stock',{index: 'time', '>=': start },'time')
+				.then((productList)=>
 				{
 					let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });
 					let date = new Date();
@@ -37,8 +38,6 @@ document.addEventListener('DOMContentLoaded', function()
 					console.log( e );
 					Utils.alert('An error occurred please check logs');
 				});
-
-				break;
 			}
 			case 'Offers':
 			{
