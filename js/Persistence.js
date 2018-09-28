@@ -482,7 +482,6 @@ class Persistence
 						}
 					});
 
-					console.log(",");
 					s+= row.join('\t')+'\n';
 				}
 				else
@@ -569,12 +568,21 @@ class Persistence
 			if( typeof obj[ key ] === 'boolean' )
 				return obj[ key ] ? 1 : 0;
 
-			return  typeof obj[ key ] === 'string'
-				? '"'+obj[ key ].trim().replace(/"/g, '""' ).replace(/\s+/g,' ')+'"'
-				: obj[ key ];
+			if( typeof obj[ key ] === 'string' )
+			{
+				let value = obj[ key ].trim().replace(/\s+/g,' ');
+
+				if( /^".*"$/.test( value ) )
+				{
+					return value.replace(/^"(.*)"$/,'$1');
+				}
+				return value;
+			}
+
+			return obj[ key ];
 		}
 
-		return '""';
+		return '';
 	}
 
 	getValidHistoricStockKeys()
@@ -811,7 +819,7 @@ class Persistence
 
 		finalArray.splice( 0, 0, columns );
 
-		return finalArray.reduce( (prev, item ) => {  return prev + item.join(",")+"\n"; }, '' );
+		return finalArray.reduce( (prev, item ) => {  return prev + item.join("\t")+"\n"; }, '' );
 	}
 
 
@@ -883,7 +891,7 @@ class Persistence
 
 		array.forEach(i=>
 		{
-			s+= i.join(",")+"\n";
+			s+= i.join("\t")+"\n";
 		});
 
 
@@ -911,7 +919,7 @@ class Persistence
 	getStockReportArray( stockArray, product_sellers_preferences )
 	{
 		let reportRows = [];
-		let allColumns	= { 'asin': 1, 'seller_id':1, 'id':1, 'is_prime' : 1 };
+		let allColumns	= { 'asin': 1, 'seller_id':1 ,'is_prime' : 1 };
 
 		stockArray.forEach((stock)=>
 		{

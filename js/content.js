@@ -188,7 +188,7 @@ function cartIntervalFunction()
 
 	let savedForLater = parser.cartPage.getSaveForLaterCount();
 
-	if( savedForLater > 10 )
+	if( savedForLater > 2 )
 	{
 		document.body.setAttribute('style',"background: red;");
 	}
@@ -317,7 +317,7 @@ function parseCart()
 		}
 		else
 		{
-			setInterval( cartIntervalFunction, 1000 );
+			cart_interval = setInterval( cartIntervalFunction, 500 );
 		}
 	});
 }
@@ -455,7 +455,7 @@ function parseVendorsPage()
 							client.executeOnBackground("StockFound",[{
 								asin: p.asin
 								,time: parser.productUtils.date.toISOString()
-								,qty: "NOT FOUND"
+								,qty: "N/A"
 								,is_prime: false
 								,seller_id: settings.product_sellers_preferences[ p.asin ][0]
 								,date: parser.productUtils.date.getFullYear()+"-"+x( parser.productUtils.date.getMonth()+1)+"-"+x( parser.productUtils.date.getDate() )
@@ -463,7 +463,8 @@ function parseVendorsPage()
 
 							if( !parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
 							{
-								parser.productSellersPage.addToCartFirstSeller();
+								this.client.closeThisTab();
+								//parser.productSellersPage.addToCartFirstSeller();
 							}
 						}
 					}
@@ -569,10 +570,10 @@ function parse()
 
 
 let checkInterval = null;
+var settingsIntialized = false;
 
 if(  window.location.hostname === 'www.amazon.com' )
 {
-	settingsIntialized = false;
 
 	client.addListener("SettingsArrive",(newSettings)=>
 	{
@@ -583,6 +584,8 @@ if(  window.location.hostname === 'www.amazon.com' )
 
 		if( !settingsIntialized )
 		{
+			settingsIntialized = true;
+
 			parse();
 
 			let checkUrl = ()=>
