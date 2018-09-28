@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 				let start = '2018-07-20T05:26:00.000Z';
 
-				return persistence.getAllIncremental('stock',{index: 'time', '>=': start },'time')
+				return persistence.getAllIncremental('products',{index: 'time', '>=': start },'time')
 				.then((productList)=>
 				{
 					let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });

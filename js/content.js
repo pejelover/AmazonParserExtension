@@ -145,11 +145,8 @@ function parseProductPage()
 		}
 		else if( settings.page_product.add_to_cart && seller_match )
 		{
-			parser.productPage.addToCart().then((result)=>
-			{
-				if( !result )
+			if( !parser.productPage.addToCart() )
 					parser.productPage.followPageProductOffers();
-			});
 			return;
 		}
 		else if( settings.page_product.goto_sellers_pages )
