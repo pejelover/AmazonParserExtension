@@ -255,7 +255,7 @@ class Persistence
 				return this.database.getAll('stock', newOptions ).then((all)=>
 				{
 					newOptions[ '>=' ] = all[ all.length-1 ][ indexName ];
-					console.log('Start', newOptions[indexName ] );
+					console.log('Start', newOptions[ '>='] );
 					allRecords.push( ...all );
 					return Promise.resolve( 1 );
 				});
