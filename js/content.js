@@ -146,7 +146,18 @@ function parseProductPage()
 		else if( settings.page_product.add_to_cart && seller_match )
 		{
 			if( !parser.productPage.addToCart() )
-					parser.productPage.followPageProductOffers();
+			{
+				let func= ()=> {
+					console.log('Trying another');
+					return parser.productPage.followPageProductOffers();
+				};
+
+				PromiseUtils.tryNTimes( func, 500, 10 ).catch((e)=>
+				{
+					console.log( e );
+					//document.body.setAttribute("style","background-color:red");
+				});
+			}
 			return;
 		}
 		else if( settings.page_product.goto_sellers_pages )
@@ -223,33 +234,40 @@ function cartIntervalFunction()
 		}
 		else
 		{
-			parser.cartPage.parseItemProcess( null )
-			.then(( product )=>
-			{
-				client.executeOnBackground('StockFound', product.stock );
-				parser.cartPage.removeItemByAsin( product.asin );
+			let asin = parser.cartPage.getFirstCartItemAsin();
 
-				return PromiseUtils.tryNTimes(()=>
+			if( asin !== null )
+			{
+				parser.cartPage.parseItemProcess( asin )
+				.then(( product )=>
 				{
-					let div = parser.cartPage.getCartItemByAsin( product.asin );
+					client.executeOnBackground('StockFound', product.stock );
+					parser.cartPage.removeItemByAsin( product.asin );
 
-					if( div !== null )
+					return PromiseUtils.tryNTimes(()=>
 					{
-						parser.cartPage.removeItemByAsin( product.asin );
-						return false;
-					}
+						let div = parser.cartPage.getCartItemByAsin(  asin );
 
-					return true;
-				},300, 14);
-			})
-			.catch(()=>
-			{
-				console.log('It fails to parse and remove');
-			})
-			.finally(()=>
-			{
-				cart_blocked = false;
-			});
+						if( div !== null )
+						{
+							parser.cartPage.removeItemByAsin( asin );
+							return false;
+						}
+
+						return true;
+					},300, 14);
+				})
+				.catch(( e )=>
+				{
+					console.log('It fails to parse and remove', e);
+				})
+				.finally(()=>
+				{
+					cart_blocked = false;
+				});
+				return;
+			}
+			cart_blocked = false;
 		}
 
 		return;
@@ -461,11 +479,12 @@ function parseVendorsPage()
 								,date: parser.productUtils.date.getFullYear()+"-"+x( parser.productUtils.date.getMonth()+1)+"-"+x( parser.productUtils.date.getDate() )
 							}]);
 
-							if( !parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
-							{
-								this.client.closeThisTab();
-								//parser.productSellersPage.addToCartFirstSeller();
-							}
+							client.closeThisTab();
+
+							//if( !parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
+							//{
+							//	//parser.productSellersPage.addToCartFirstSeller();
+							//}
 						}
 					}
 					else

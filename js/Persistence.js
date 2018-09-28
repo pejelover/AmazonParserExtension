@@ -568,6 +568,10 @@ class Persistence
 			if( typeof obj[ key ] === 'boolean' )
 				return obj[ key ] ? 1 : 0;
 
+			if( obj[ key ] === 'NOT FOUND' )
+				return 'N/A';
+
+
 			if( typeof obj[ key ] === 'string' )
 			{
 				let value = obj[ key ].trim().replace(/\s+/g,' ');
@@ -878,6 +882,7 @@ class Persistence
 			|| newValue === undefined
 			|| newValue === 'NO FOUND'
 			|| newValue === 'Error > 990'
+			|| newValue === 'N/A'
 			|| ( (newValue === '""' || newValue === "" ) && oldValue !== null && oldValue !== undefined ) )
 				return oldValue === undefined ? null : oldValue;
 
@@ -998,9 +1003,6 @@ class Persistence
 		{
 			if( itemFilter !== null && !itemFilter( item ) )
 				return;
-
-			if( itemIndex === 3600 )
-				console.log( 'Here');
 
 			let key  = index_id in item ? item[ index_id ] : valueMapperGetter( index_id, item );
 
