@@ -979,6 +979,31 @@ class Persistence
 	}
 
 
+	optimizeAlStock()
+	{
+		return this.database.count( 'stock' ).then((stockCount)=>
+		{
+			let start 	= 1;
+
+			let count	= stockCount/100000;
+
+			if( count !== Math.floor( count ) )
+				count = Math.floor( count )+1;
+
+			let a = Array( count );
+			a.fill( 0 );
+
+			return PromiseUtils.runSequential(a,()=>
+			{
+				return optimizeStock(start,100000).then((last_id)=>
+				{
+					start = last_id;
+					return Promise.resolve(true);
+				});
+			});
+		});
+	}
+
 	optimizeStock(start, count)
 	{
 		let allKeys = {};
