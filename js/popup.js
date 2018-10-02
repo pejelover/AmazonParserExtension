@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function()
 	//Utils.getById("date2").value = date1.toISOString();
 
 
-
 	//var ext = new Client();
 
 	chrome.windows.getCurrent((w)=>
@@ -48,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function()
 		{
 			case 'Basic Info'	:
 			{
-				persistence.getProductList( date1, date2 )
+				persistence.getProductList( date1String, date2String )
 				.then((products)=>
 				{
 					let s = persistence.generateRawReport( products );

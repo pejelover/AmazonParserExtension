@@ -64,7 +64,10 @@ ext.addListener('StockFound',(url,request,tab_id)=>
 {
 	try{
 	if( Array.isArray( request ) && request.length  )
+	{
 		persistence.addStock( request );
+		console.log( request[0].qty );
+	}
 	else
 		console.log("not a valid request");
 	}catch(e)

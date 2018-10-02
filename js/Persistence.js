@@ -85,6 +85,39 @@ class Persistence
 	init()
 	{
 		return this.database.init();
+		//.then(()=>
+		//{
+		//	return this.deleteBadValues();
+		//});
+	}
+
+	deleteBadValues()
+	{
+		//2018-09-27T21:44:00.000Z
+		//2018-09-27T21:41:00.000Z
+		this.database.getAll('stock',{ index:'time','>=':"2018-09-27T21:40:00.000Z", '<=':'2018-09-28T22:45:00.000Z'}).then((all)=>
+		{
+			let toRemove = [];
+			all.forEach((z)=>
+			{
+				let qty = this.productUtils.getQty( z.qty );
+
+				if( qty === '999' ||  qty === 999 )
+				{
+					toRemove.push( z.id );
+				}
+			});
+
+			return this.database.deleteByKeyIds('stock',toRemove );
+		})
+		.then((deleted)=>
+		{
+			console.log('Deleted', deleted );
+		})
+		.catch((error)=>
+		{
+			console.log('An error occours', error );
+		});
 	}
 
 	updateUrl( url )
@@ -220,6 +253,78 @@ class Persistence
 		return this.database.updateItems('products', list );
 	}
 
+/*
+	optimize()
+	{
+		return this.database.count( storeName, {}).then((offersCount)=>
+		{
+			let all = [];
+			let newOptions = { '>=': 0, count: 50000 };
+
+			let start 	= 1;
+			let count	= offersCount/newOptions.count;
+
+			if( count !== Math.floor( count ) )
+				count = Math.floor( count )+1;
+
+			let times =new Array( count );
+			times.fill(0);
+			let allRecords = [];
+
+			let last_id = null;
+			let generator = ()=>
+			{
+				return this.database.getAll('stock', newOptions ).then(( stockList )=>
+				{
+//
+					let allKeys = {};
+					let toDelete = [];
+
+					stockList.forEach(( stock )=>
+					{
+						//2018-08-30T16:11:00.000Z
+						let key = stock.time.substring(0,15)+stock.asin+stock.seller_id+( stock.is_prime? 1 : 0 );
+
+						if( key in allKeys )
+						{
+							let oldValue = this.productUtils.getQty( allKeys[ key ].qty );
+							let newValue = this.productUtils.getQty( stock.qty );
+							let bestValue = this.getQtyABestValue( oldValue, newValue );
+
+							if(  bestValue === newValue )
+							{
+								toDelete.push( allKeys[ key ].id );
+								allKeys[ key ] = stock;
+								last_id = stock.id;
+							}
+							else
+							{
+								toDelete.push( stock.id );
+							}
+						}
+						else
+						{
+							allKeys[ key ] = stock;
+							last_id = stock.id;
+						}
+					});
+
+					newOptions[ '>=' ] = last_id;
+					return this.database.deleteByKeyIds('stock',toDelete );
+//
+				});
+			};
+
+			return PromiseUtils.runSequential( times, generator )
+			.then(()=>
+			{
+				return Promise.resolve( allRecords );
+			});
+		});
+	}
+*/
+
+
 	getAllIncremental( storeName, options , indexName )
 	{
 		console.log( options );
@@ -291,18 +396,20 @@ class Persistence
 
 	getProductList( date1, date2 )
 	{
+		console.log( date1, date2 );
+
 		let options = {};
 
 		if( date1 )
 		{
 			options.index = 'parsedDates';
-			options['>='] = date1.toISOString();
+			options['>='] = date1;
 		}
 
 		if( date2 )
 		{
 			options.index = 'parsedDates';
-			options['<='] = date2.toISOString();
+			options['<='] = date2;
 		}
 
 		return this.database.getAll('products', options );
@@ -346,14 +453,14 @@ class Persistence
 				if( key in product )
 				{
 					let value =  typeof product[key] === 'string'
-						? product[key].replace(/"/g, '""' ).replace(/[\s\t]+/g,' ').trim()
-						: JSON.stringify( product[ key ] );
+						? product[key].replace(/\s+/g,' ').trim()
+						: product[ key ];
 
-					row.push( '"'+value+'"' );
+					row.push( value );
 				}
 				else
 				{
-					row.push( '""' );
+					row.push( '' );
 				}
 			});
 
@@ -640,12 +747,57 @@ class Persistence
 			,producer: true
 			,title	: true
 			//,stock	: true
-			//,no_offers	: true
-			//,no_offers_text: true
+			,no_offers	: true
+			,no_offers_text: true
 			,rating	: true
 			,number_of_ratings: true
 			,shipping: true
 			,parsed: true
+
+			,'Rank':1
+			,'Rank Department':1
+			,'description':1
+			//,'Sold by':1
+			//,'fetures_1':1
+			//,'fetures_2':1
+			//,'fetures_3':1
+			//,'fetures_4':1
+			//,'fetures_5':1
+			,'Part Number':1
+			,'Number of Items':1
+			,'Brand Name':1
+			,'EAN':1
+			,'Material':1
+			,'Model Number':1
+			,'Style':1
+			,'UNSPSC Code':1
+			,'UPC':1
+			,'Shipping Weight:':1
+			,'ASIN:':1
+			,'Item model number':1
+			,'Average Customer Review':1
+			,'Best Sellers Rank':1
+			,'Measurement System':1
+			,'Item Weight':1
+			,'Product Dimensions':1
+			,'Color':1
+			,'Size':1
+			,'Domestic Shipping':1
+			,'International Shipping':1
+			,'Shipping Information':1
+			//,'Item Weight':1
+			,'Height':1
+			//,'Item Shape':1
+			//,'Maximum Temperature':1
+			,'Width':1
+			//,'Shipping Advisory':1
+			//,'Specification Met':1
+			,'Length':1
+			//,'Lower Temperature Range':1
+			//,'Upper Temperature Rating':1
+			//,'Included Components':1
+			//,'Lower Temperature Rating':1
+			//,'Parsed Date';:1
 			//,left: true
 			//,fullfilled_by: true
 		};
