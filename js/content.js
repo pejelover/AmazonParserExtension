@@ -152,7 +152,7 @@ function parseProductPage()
 					return parser.productPage.followPageProductOffers();
 				};
 
-				PromiseUtils.tryNTimes( func, 500, 10 ).catch((e)=>
+				PromiseUtils.tryNTimes( func, 500, 20 ).catch((e)=>
 				{
 					console.log( e );
 					//document.body.setAttribute("style","background-color:red");
