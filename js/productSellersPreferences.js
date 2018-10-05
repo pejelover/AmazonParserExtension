@@ -24,7 +24,10 @@ document.addEventListener('DOMContentLoaded',()=>
 		{
 			for(let key in settings.product_sellers_preferences )
 			{
-				value += key+':'+settings.product_sellers_preferences[ key ].join(",")+"\n";
+				settings.product_sellers_preferences[ key ].forEach((seller_id)=>
+				{
+					value += key+':'+seller_id+"\n";
+				});
 			}
 		}
 
@@ -42,10 +45,15 @@ document.addEventListener('DOMContentLoaded',()=>
 			array.forEach((i)=>
 			{
 				let tokens = i.replace(/ /g,'').split(/[:\s]/);
-				let values = tokens[1].split(',');
+
 				if( tokens.length == 2 && tokens[1].trim() !== "" )
 				{
-					keyValues[ tokens[0].trim() ] = tokens[1].split(",");
+					let asin = tokens[0].trim();
+
+					if( asin in keyValues )
+						keyValues[ asin ].push( tokens[1].trim() );
+					else
+						keyValues[ asin ] = [ tokens[ 1 ].trim() ];
 				}
 			});
 
