@@ -310,7 +310,14 @@ function cartIntervalFunction()
 		return;
 	}
 
-	setTimeout(()=>{ location.reload();}, 5000 );
+	if( settings.page_cart.close_tab )
+	{
+		client.closeThisTab();
+	}
+	else
+	{
+		setTimeout(()=>{ location.reload();}, 5000 );
+	}
 
 	cart_blocked = false;
 }
