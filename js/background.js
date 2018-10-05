@@ -23,6 +23,17 @@ persistence.init()
 
 var ext			= new Server();
 
+ext.addListener('RemoveAsinSeller',(url,request,tab_id )=>
+{
+	if( request.asin in settings.product_sellers_preferences )
+	{
+		let index = settings.product_sellers_preferences[ request.asin ].indexOf( request.seller_id );
+
+		if( index !== -1 )
+			settings.product_sellers_preferences[ request.asin ].splice( index, 1 );
+	}
+});
+
 
 ext.addListener('PageNotFound',(url,request,tab_id )=>
 {
@@ -57,8 +68,9 @@ ext.addListener('OffersFound',(url,request,tab_id)=>
 	{
 		console.log( e );
 	}
-
 });
+
+
 
 ext.addListener('StockFound',(url,request,tab_id)=>
 {
@@ -66,6 +78,20 @@ ext.addListener('StockFound',(url,request,tab_id)=>
 	if( Array.isArray( request ) && request.length  )
 	{
 		persistence.addStock( request );
+
+		request.forEach((stock)=>
+		{
+			if( stock.asin in settings.product_sellers_preferences )
+			{
+				let sellers_ids = settings.product_sellers_preferences[ stock.asin ];
+
+				let index = sellers_ids.indexOf( stock.seller_id );
+
+				if( index !== -1 )
+					settings.product_sellers_preferences[ stock.asin ].splice( index, 1 );
+			}
+		});
+
 		console.log( request[0].qty );
 	}
 	else
