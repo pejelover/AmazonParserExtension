@@ -9,13 +9,16 @@ var htmlmin			= require('gulp-htmlmin');
 var concat 			= require('gulp-concat');
 var mergeStream		= require('merge-stream');
 //var closureCompiler = require('google-closure-compiler').gulp();
-var amazonDir		= '/home/pejelover/Projects/AmazonParser';
-//var amazonDir		= './node_modules/amazon-parser';
+
+//var amazonDir		= '/home/pejelover/Projects/AmazonParser';
+var amazonDir		= './node_modules/amazon-parser';
 
 gulp.task('default', ['html' ,'css' ,'scripts' ,'images' ,'watch','manifest']);
+gulp.task('build',['html' ,'css' ,'scripts' ,'images' ,'manifest']);
 
 gulp.task('watch',()=>
 {
+	amazonDir		= '/home/pejelover/Projects/AmazonParser';
 	gulp.watch( [ './css/*.css' ] ,['css'] );
 	gulp.watch ( ['./js/*.js' ] ,['scripts']);
 	gulp.watch ( [ 'manifest.json' ], ['manifest'] );

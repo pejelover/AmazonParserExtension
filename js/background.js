@@ -23,7 +23,7 @@ persistence.init()
 
 var ext			= new Server();
 
-ext.addListener('RemoveAsinSeller',(url,request,tab_id )=>
+ext.addListener('RemoveAsinSeller',(url,request,tab_id, port )=>
 {
 	if( request.asin in settings.product_sellers_preferences )
 	{
@@ -34,6 +34,14 @@ ext.addListener('RemoveAsinSeller',(url,request,tab_id )=>
 	}
 });
 
+ext.addListener('AddUrls',(url,request,tab_id,port)=>
+{
+	if( Array.isArray( request ) && request.length  )
+	{
+		persistence.addUrls( request );
+	}
+});
+
 
 ext.addListener('PageNotFound',(url,request,tab_id )=>
 {
@@ -41,11 +49,11 @@ ext.addListener('PageNotFound',(url,request,tab_id )=>
 	persistence.addNotFound({ asin: request.asin, url: url, time : date.toISOString() });
 });
 
-ext.addListener('UrlDetected',(url,request,tab_id)=>
+ext.addListener('UrlDetected',(url,request,tab_id, port )=>
 {
 	persistence.updateUrl( request ).then(()=>
 	{
-		ext.executeOnClients('SettingsArrive', settings );
+		ext.executeOnClients('SettingsArrive', settings, port );
 	});
 });
 
@@ -57,7 +65,7 @@ ext.addListener('SettingsChange',()=>
 	});
 });
 
-ext.addListener('OffersFound',(url,request,tab_id)=>
+ext.addListener('OffersFound',(url,request,tab_id, port)=>
 {
 	try{
 	if( Array.isArray( request ) && request.length  )
@@ -72,7 +80,7 @@ ext.addListener('OffersFound',(url,request,tab_id)=>
 
 
 
-ext.addListener('StockFound',(url,request,tab_id)=>
+ext.addListener('StockFound',(url,request,tab_id,port)=>
 {
 	try{
 	if( Array.isArray( request ) && request.length  )
@@ -107,7 +115,7 @@ ext.addListener('OpenBackup',()=>{
 });
 
 
-ext.addListener('ProductsFound',(url,request,tab_id)=>
+ext.addListener('ProductsFound',(url,request,tab_id, port )=>
 {
 	if( Array.isArray( request ) && request.length )
 	{

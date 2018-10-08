@@ -6,7 +6,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 15
+			,version	: 16
 			,stores		:{
 				products:
 				{
@@ -54,11 +54,12 @@ class Persistence
 				}
 				,urls:
 				{
-					keyPath: 'url'
-					,autoincrement: false
+					keyPath: 'id'
+					,autoincrement: true
 					,indexes	:
 					[
-						{indexName: 'type', keyPath: 'type', objectParameters:{ uniq: false, multiEntry: true } }
+						{indexName: 'url', keyPath: 'url', objectParameters:{ uniq: false, multiEntry: true } }
+						,{indexName: 'type', keyPath: 'type', objectParameters:{ uniq: false, multiEntry: true } }
 					]
 				}
 				,settings:
@@ -82,6 +83,12 @@ class Persistence
 
 		//this.database.init();
 	}
+
+	addUrls( urls )
+	{
+		return this.database.updateItems('urls', list );
+	}
+
 	init()
 	{
 		return this.database.init();
@@ -904,6 +911,14 @@ class Persistence
 					result[ i ] = default_settings[ i ];
 			}
 
+			for( let i in default_settings.page_sellers )
+			{
+				if( !( i in result.page_sellers ) )
+				{
+					result.page_sellers[ i ] = default_settings.page_sellers;
+				}
+			}
+
 			return result;
 		})
 		.catch((e)=>
@@ -995,7 +1010,7 @@ class Persistence
 
 			return PromiseUtils.runSequential(a,()=>
 			{
-				return optimizeStock(start,100000).then((last_id)=>
+				return this.optimizeStock(start,100000).then((last_id)=>
 				{
 					start = last_id;
 					return Promise.resolve(true);

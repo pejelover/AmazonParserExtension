@@ -20,8 +20,12 @@ var default_settings = {
 	}
 	,page_sellers:
 	{
-		action	: 'do_nothing'
+		add_first	: false
+		,add_amazon : false
+		,add_first_prime: true
+		,close_tab	: false
 		,go_to_next	: false
+		,add_if_only_one	: false
 	}
 	,product_sellers_preferences: {
 	}
