@@ -682,11 +682,11 @@ function parse()
 
 function parseMerchantProducts()
 {
-	Promise.resolveAfter( 1, 2000 ).then(()=>
+	PromiseUtils.resolveAfter( 1, 2000 ).then(()=>
 	{
 		let allLinks = parser.getAllLinks();
 		client.executeOnBackground('AddUrls',allLinks );
-		return Promise.resolveAfter(1, 1500 );
+		return PromiseUtils.resolveAfter(1, 1500 );
 	})
 	.then(()=>
 	{

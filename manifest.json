@@ -30,6 +30,7 @@
 				,"js/AmazonParser/Prev2Cart.js"
 				,"js/AmazonParser/ProductSellersPage.js"
 				,"js/AmazonParser/AmazonParser.js"
+				,"js/AmazonParser/MerchantProducts.js"
 				,"js/extension-framework/Client.js"
 				,"js/content.js"
 			]

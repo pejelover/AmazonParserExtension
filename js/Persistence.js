@@ -6,7 +6,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 16
+			,version	: 18
 			,stores		:{
 				products:
 				{
@@ -52,7 +52,7 @@ class Persistence
 						,{ indexName: 'seller_id'	,keyPath:'seller_id'	,objectParameters: { uniq: false ,multiEntry: false} }
 					]
 				}
-				,urls:
+				,links:
 				{
 					keyPath: 'id'
 					,autoincrement: true
@@ -86,7 +86,7 @@ class Persistence
 
 	addUrls( urls )
 	{
-		return this.database.updateItems('urls', list );
+		return this.database.addItems('links', urls );
 	}
 
 	init()
@@ -129,7 +129,7 @@ class Persistence
 
 	updateUrl( url )
 	{
-		return this.database.put( 'urls', url );
+		return this.database.addItems( 'links', [url] );
 	}
 
 	addNotFound( notFoundObj )
@@ -176,13 +176,13 @@ class Persistence
 			return prev;
 		},[]);
 
-		return this.database.updateItems('stock', filtered );
+		return this.database.addItems( 'stock', filtered );
 	}
 
 	addOffers( offersArray )
 	{
 		let filtered = offersArray.filter( offer => 'price' in offer && 'time' in offer );
-		return this.database.updateItems( 'offers', filtered );
+		return this.database.addItems( 'offers', filtered );
 	}
 
 	getOffers(date1,data2Keys)
@@ -1223,17 +1223,5 @@ class Persistence
 		});
 
 		return Object.values( indexes );
-
-		//let emptyArray = [];
-		//arrayResult.push( allKeysColumns );
-		//allValues.forEach((item)=>{
-		//	let row = emptyArray.slice(0);
-		//	allKeysColumns.forEach((i,index)=>
-		//	{
-		//		row[ index ] = i in item ? item[i] : '';
-		//	});
-		//	arrayResult.push( row );
-		//});
-		//return arrayResult;
 	}
 }
