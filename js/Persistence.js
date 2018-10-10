@@ -364,7 +364,7 @@ class Persistence
 
 			let generator = ()=>
 			{
-				return this.database.getAll('stock', newOptions ).then((all)=>
+				return this.database.getAll(storeName, newOptions ).then((all)=>
 				{
 					newOptions[ '>=' ] = all[ all.length-1 ][ indexName ];
 					console.log('Start', newOptions[ '>='] );
@@ -738,9 +738,11 @@ class Persistence
 		};
 	}
 
-	getDownloadHref( object )
+	getDownloadHref( object, contentType )
 	{
-		var blob = new Blob([JSON.stringify( object , null, 2)], {type : 'application/json'});
+		let ctype = contentType ? contentType : 'application/json';
+
+		var blob = new Blob([typeof object === 'string' ? object : JSON.stringify( object , null, 2)], {type :  ctype });
 		let objectURL = URL.createObjectURL( blob );
 		return objectURL;
 	}
@@ -1112,6 +1114,39 @@ class Persistence
 
 	//	return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
 	//}
+
+
+	getUrlsReport()
+	{
+		return this.getAllIncremental( 'links',{ '>=': 0 },'id').then((links)=>
+		{
+			let a = new AmazonParser();
+			let report = [['asin','seller_id','seller name', 'url']];
+
+			links.forEach((link)=>
+			{
+				if( link.type != 'PRODUCT_PAGE' )
+					return;
+
+				let url = link.url;
+				let asin = a.getAsinFromUrl( url );
+
+				let seller_name = 'seller_id' in link ? link.seller_id : '';
+				let seller_id = '';
+
+				let params = a.getParameters( url );
+
+				if( params.has('m') )
+				{
+					seller_id = params.get('m');
+				}
+
+				report.push([asin, seller_id, seller_name, url ]);
+			});
+
+			return Promise.resolve( report );
+		});
+	}
 
 	getStockReportArray( stockArray, product_sellers_preferences )
 	{

@@ -415,20 +415,45 @@ function parseSearchPage()
 	})
 	.then(()=>
 	{
-		let p = parser.parseProductSearchList();
+		//let products = parser.parseProductSearchList();
 
-		if( p.length == 0 )
-			p = parser.parseProductSearchList2();
+		//if( products.length == 0 )
+		//	products = parser.parseProductSearchList2();
 
-		if( p.stock.length )
-			client.executeOnBackground('StockFound', p.stock );
+		//let offers = products.reduce((p,c)=>
+		//{
+		//	c.offers.forEach((offer)=>p.push( offer ) );
+		//	return p;
+		//},[]);
 
-		if( p.offers.length )
-			client.executeOnBackground('OffersFound', p.offers );
+		//let stocks = products.reduce((p,c)=>
+		//{
+		//	c.stock.forEach((stock)=>p.push( stock ) );
+		//	return p;
+		//},[]);
 
-		if( p.length )
-			client.executeOnBackground('ProductsFound', p );
+		//if( offers.length )
+		//	client.executeOnBackground('OffersFound',offers );
 
+		//if( stocks.length )
+		//	client.executeOnBackground('StockFound',stocks );
+
+
+		let links = parser.getAllLinks();
+		client.executeOnBackground('AddUrls', links );
+		return PromiseUtils.resolveAfter(true,1500);
+	})
+	.then(()=>
+	{
+		let next = document.querySelector('#pagnNextLink');
+		if( next )
+		{
+			next.click();
+		}
+		else
+		{
+			document.body.setAttribute('background-color: red');
+		}
 	})
 	.catch((error)=>
 	{
@@ -454,15 +479,20 @@ function parseVendorsPage()
 		return PromiseUtils.resolveAfter( 1, 2000 )
 		.then(()=>
 		{
-			let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
+			let addedToCart = false;
+
+			if( p.asin in settings.product_sellers_preferences )
 			{
-				let search = seller_id;
+				addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
+				{
+					let search = seller_id;
 
-				if( search === 'ATVPDKIKX0DER' )
-					search = 'amazon.com';
+					if( search === 'ATVPDKIKX0DER' )
+						search = 'amazon.com';
 
-				return parser.productSellersPage.addToCartBySellerId( search );
-			});
+					return parser.productSellersPage.addToCartBySellerId( search );
+				});
+			}
 
 
 			if( addedToCart )
@@ -478,22 +508,18 @@ function parseVendorsPage()
 				return;
 			}
 
-			if( settings.page_sellers.add_amazon && !parser.productSellersPage.addToCartBySellerIdaddToCartBySellerId( 'amazon.com' ) )
+			if( settings.page_sellers.add_amazon && parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
 			{
 				return;
 			}
 
-			if( settings.page_sellers.add_first_prime &&  parser.productSellersPage.addFirstPrime() )
+
+
+			if( settings.page_sellers.add_first_prime &&  parser.productSellersPage.addToCartFirstPrime() )
 			{
 				return;
 			}
 
-			if( settings.page_sellers.add_first
-				&& parser.productSellersPage.isFirstPage()
-				&& parser.productSellersPage.hasNextPage.addToCartFirstSeller() )
-			{
-				return;
-			}
 
 			if( parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
 			{
@@ -504,6 +530,14 @@ function parseVendorsPage()
 				});
 				return;
 			}
+
+			if( settings.page_sellers.add_first
+				&& parser.productSellersPage.isFirstPage()
+				&& parser.productSellersPage.addToCartFirstSeller() )
+			{
+				return;
+			}
+
 
 			if( settings.page_sellers.add_if_only_one )
 			{
@@ -673,7 +707,8 @@ function parse()
 		}
 		case "MERCHANT_PRODUCTS":
 		{
-			parseMerchantProducts();
+			parseSearchPage();
+			//parseMerchantProducts();
 		}
 	}
 }
@@ -682,16 +717,18 @@ function parse()
 
 function parseMerchantProducts()
 {
-	PromiseUtils.resolveAfter( 1, 2000 ).then(()=>
-	{
-		let allLinks = parser.getAllLinks();
-		client.executeOnBackground('AddUrls',allLinks );
-		return PromiseUtils.resolveAfter(1, 1500 );
-	})
-	.then(()=>
-	{
-		parser.merchantProductsPage.goToNextPage();
-	});
+	//PromiseUtils.resolveAfter( 1, 2000 ).then(()=>
+	//{
+	//	let allLinks = parser.getAllLinks();
+	//	client.executeOnBackground('AddUrls',allLinks );
+	//	return PromiseUtils.resolveAfter(1, 1500 );
+	//})
+	//.then(()=>
+	//{
+	//	parser.merchantProductsPage.goToNextPage();
+	//});
+
+	parseSearchPage();
 }
 
 
@@ -701,7 +738,6 @@ var settingsIntialized = false;
 
 if(  window.location.hostname === 'www.amazon.com' )
 {
-
 	let promise1 = new Promise((resolve,reject)=>
 	{
 		client.addListener("SettingsArrive",(newSettings)=>
@@ -711,11 +747,6 @@ if(  window.location.hostname === 'www.amazon.com' )
 			if( settings.parse_status === "parse_disabled" )
 				return;
 
-			if( !settingsIntialized )
-			{
-				settingsIntialized = true;
-			}
-
 			let type = parser.getPageType( window.location.href );
 			if( type === 'PREVIOUS_TO_CART_PAGE' && settings.page_previous_cart.action === 'close_tab' )
 			{
@@ -724,6 +755,7 @@ if(  window.location.hostname === 'www.amazon.com' )
 			}
 
 			resolve();
+			parse();
 		});
 	});
 
@@ -763,7 +795,7 @@ if(  window.location.hostname === 'www.amazon.com' )
 	};
 
 	if( checkInterval === null )
-		setInterval( checkUrl, 1000 );
+		setInterval( checkUrl, 1500 );
 }
 
 })();

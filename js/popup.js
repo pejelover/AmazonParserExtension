@@ -62,16 +62,25 @@ document.addEventListener('DOMContentLoaded', function()
 			}
 			case 'products_without_stock':
 			{
-				persistence.getProductList( date1, date2 ).then((products)=>
-				{
-					//let s = persistence.generateProductsNoStock( products );
-					let s = persistence.generateRawReport( products );
-					download('something.csv',s);
-				})
-				.catch((e)=>
-				{
-					console.log( e );
-					Utils.alert('An error occorred');
+				//persistence.getProductList( date1, date2 ).then((products)=>
+				//{
+				//	//let s = persistence.generateProductsNoStock( products );
+				//	let s = persistence.generateRawReport( products );
+				//	download('something.csv',s);
+				//})
+				//.catch((e)=>
+				//{
+				//	console.log( e );
+				//	Utils.alert('An error occorred');
+				//});
+
+				persistence.getUrlsReport()
+				.then((allUrls)=> {
+					let filename = 'Foooo.csv';
+					let string = allUrls.reduce((p,c)=>{
+						return p+(c.join('\t') )+'\n';
+					},'');
+					download( filename, string );
 				});
 				break;
 			}
@@ -128,7 +137,9 @@ document.addEventListener('DOMContentLoaded', function()
 
 		console.log( 'Texst length ',downloadableText.length );
 
-		element.setAttribute('href', 'data:text/csv;charset=utf-8,' +downloadableText );
+		let href = persistence.getDownloadHref( text, 'data:text/csv' );//data:text/csv;charset=utf-8
+
+		element.setAttribute('href', href );// +downloadableText );
 		element.setAttribute('download', filename);
 		element.style.display = 'none';
 
