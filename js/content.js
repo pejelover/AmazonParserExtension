@@ -153,7 +153,7 @@ function parseProductPage()
 			client.closeThisTab();
 			return;
 		}
-		else if( settings.page_product.add_to_cart && seller_match )
+		else if( settings.page_product.add_to_cart )
 		{
 			if( !parser.productPage.addToCart() )
 			{
@@ -214,7 +214,7 @@ function cartIntervalFunction()
 		document.body.setAttribute('style',"background: red;");
 	}
 
-	let p = parser.cartPage.parseFirstItem();
+	let p = parser.cartPage.parseLastItem();
 
 	if( p !== null )
 	{
@@ -244,7 +244,7 @@ function cartIntervalFunction()
 		}
 		else
 		{
-			let asin = parser.cartPage.getFirstCartItemAsin();
+			let asin = parser.cartPage.getLastCartItemAsin();
 
 			if( asin !== null )
 			{
@@ -411,33 +411,45 @@ function parseSearchPage()
 {
 	checkForRobots().then(()=>
 	{
-		return client.waitTillReady( parser.getSearchListSelector(), false );
+		return PromiseUtils.tryNTimes(()=>
+		{
+			let c = document.querySelectorAll( parser.getSearchListSelector( 15 ) );
+			if( c.length === 0 )
+				return false;
+
+			return true;
+		},1000,6);
 	})
-	.then(()=>
+	.finally(()=>
 	{
-		//let products = parser.parseProductSearchList();
+		let products = parser.parseProductSearchList();
 
-		//if( products.length == 0 )
-		//	products = parser.parseProductSearchList2();
+		if( products.length == 0 )
+			products = parser.parseProductSearchList2();
 
-		//let offers = products.reduce((p,c)=>
-		//{
-		//	c.offers.forEach((offer)=>p.push( offer ) );
-		//	return p;
-		//},[]);
+		let offers = products.reduce((p,c)=>
+		{
+			if('seller_id' in  c )
+				return p;
 
-		//let stocks = products.reduce((p,c)=>
-		//{
-		//	c.stock.forEach((stock)=>p.push( stock ) );
-		//	return p;
-		//},[]);
+			c.offers.forEach((offer)=>p.push( offer ) );
+			return p;
+		},[]);
 
-		//if( offers.length )
-		//	client.executeOnBackground('OffersFound',offers );
+		let stocks = products.reduce((p,c)=>
+		{
+			if( 'seller_id' in c )
+				return p;
 
-		//if( stocks.length )
-		//	client.executeOnBackground('StockFound',stocks );
+			c.stock.forEach((stock)=>p.push( stock ) );
+			return p;
+		},[]);
 
+		if( offers.length )
+			client.executeOnBackground('OffersFound',offers );
+
+		if( stocks.length )
+			client.executeOnBackground('StockFound',stocks );
 
 		let links = parser.getAllLinks();
 		client.executeOnBackground('AddUrls', links );
