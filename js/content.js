@@ -218,6 +218,13 @@ function cartIntervalFunction()
 
 	if( p !== null )
 	{
+
+		if( 'url' in p && p.url )
+		{
+			let url = { url: p.url, type: parser.getPageType( p.url ), time: parser.productUtils.getTime() };
+			client.executeOnBackground('AddUrls', [url] );
+		}
+
 		if( p.stock.length )
 		{
 			client.executeOnBackground('StockFound', p.stock );
@@ -327,6 +334,7 @@ function cartIntervalFunction()
 	else
 	{
 		setTimeout(()=>{ location.reload();}, 5000 );
+		clearInterval( cart_interval );
 	}
 
 	cart_blocked = false;
@@ -352,7 +360,8 @@ function parseCart()
 		}
 		else
 		{
-			cart_interval = setInterval( cartIntervalFunction, 500 );
+			if( cart_interval === -1 )
+				cart_interval = setInterval( cartIntervalFunction, 500 );
 		}
 	});
 }
