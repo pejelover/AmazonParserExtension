@@ -431,7 +431,7 @@ function parseSearchPage()
 	})
 	.finally(()=>
 	{
-		let products = parser.parseProductSearchList();
+		let products = parser.merchantProductsPage.parseProductSearchList();
 
 		if( products.length == 0 )
 			products = parser.parseProductSearchList2();
