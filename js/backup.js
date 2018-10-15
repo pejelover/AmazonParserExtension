@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', function()
 			case 'Products':
 			{
 
-				let start = '2018-07-20T05:26:00.000Z';
+				let start = '0040423131';
 
-				return persistence.getAllIncremental('products',{index: 'time', '>=': start },'time')
+				return persistence.getAllIncremental('products',{ '>=': start },'asin')
 				.then((productList)=>
 				{
 					let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });
