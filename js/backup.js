@@ -3,6 +3,16 @@ document.addEventListener('DOMContentLoaded', function()
 	//var ext = new Client();
 	let persistence = new Persistence();
 
+	Utils.getById('optimize').addEventListener('click',(evt)=>
+	{
+		Utils.stopEvent( evt );
+		persistence.optimizeAllStock().then(()=>
+		{
+			console.log('Ends');
+			Utils.alert('Optimization Ends');
+		});
+	});
+
 	Utils.getById('backupGenerateBackupFile').addEventListener('click',(evt)=>
 	{
 		Utils.stopEvent( evt );

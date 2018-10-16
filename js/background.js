@@ -69,7 +69,9 @@ ext.addListener('OffersFound',(url,request,tab_id, port)=>
 {
 	try{
 	if( Array.isArray( request ) && request.length  )
+	{
 		persistence.addOffers( request );
+	}
 	else
 		console.log("not a valid request");
 	}catch(e)
@@ -100,7 +102,7 @@ ext.addListener('StockFound',(url,request,tab_id,port)=>
 			}
 		});
 
-		console.log( request[0].qty );
+		//console.log( request[0].qty );
 	}
 	else
 		console.log("not a valid request");
@@ -128,7 +130,7 @@ ext.addListener('ProductsFound',(url,request,tab_id, port )=>
 		//if( offers.length )
 		//	persistence.addOffers( offers );
 
-		console.log('products found', request );
+		//console.log('products found', request );
 		persistence.updateProductLists( request );
 	}
 });

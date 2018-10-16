@@ -260,8 +260,8 @@ class Persistence
 		return this.database.updateItems('products', list );
 	}
 
-/*
-	optimize()
+	/*
+	optimizeStock()
 	{
 		return this.database.count( storeName, {}).then((offersCount)=>
 		{
@@ -283,7 +283,6 @@ class Persistence
 			{
 				return this.database.getAll('stock', newOptions ).then(( stockList )=>
 				{
-//
 					let allKeys = {};
 					let toDelete = [];
 
@@ -318,7 +317,6 @@ class Persistence
 
 					newOptions[ '>=' ] = last_id;
 					return this.database.deleteByKeyIds('stock',toDelete );
-//
 				});
 			};
 
@@ -329,8 +327,7 @@ class Persistence
 			});
 		});
 	}
-*/
-
+	*/
 
 	getAllIncremental( storeName, options , indexName )
 	{
@@ -996,7 +993,7 @@ class Persistence
 	}
 
 
-	optimizeAlStock()
+	optimizeAllStock()
 	{
 		return this.database.count( 'stock' ).then((stockCount)=>
 		{
