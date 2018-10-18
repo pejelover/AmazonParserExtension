@@ -121,6 +121,27 @@ document.addEventListener('DOMContentLoaded', function()
 					Utils.alert('An error occurred please try again later');
 				});
 			}
+			case 'Urls':
+			{
+				let option = {
+					'>=':0
+				};
+
+				persistence.getAllIncremental( 'links',{ '>=': 0 },'id')
+				.then((links)=>
+				{
+
+					let href = persistence.getDownloadHref({ products: [], stock: [], offers: [], links: links });
+					Utils.getById('backupStatus').innerHTML = '';
+					let date = new Date();
+					let anchor = window.document.createElement('a');
+					anchor.setAttribute('download', 'STOCK_backup_'+date.toISOString()+'.json');
+					anchor.setAttribute('href', href );
+					anchor.textContent = 'Backup_Links'+date.toISOString();
+					anchor.classList.add('button');
+					Utils.getById('backupStatus').append( anchor );
+				});
+			}
 		}
 	});
 

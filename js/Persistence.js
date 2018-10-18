@@ -474,6 +474,15 @@ class Persistence
 		return s;
 	}
 
+	getUrlList( date1, date2 )
+	{
+		let option = {
+			'>=':0
+		}
+
+		return this.getAllIncremental( 'links',{ '>=': 0 },'id');
+	}
+
 	generateHistoricReportByDays( productsArray, date1, date2 )
 	{
 		let keys 		= Object.keys( this.getValidHistoricStockKeys() );

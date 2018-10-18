@@ -367,56 +367,6 @@ function parseCart()
 	});
 }
 
-function oldParseCart()
-{
-	checkForRobots().then(()=>
-	{
-		if( !settings.page_cart.parse_stock )
-		{
-			let products = parser.cartPage.getProducts();
-
-			let stockArray = products.reduce((array, product)=>
-			{
-				product.stock.forEach( a=> array.push( a ) );
-				return array;
-			},[]);
-
-
-			if( stockArray.length )
-				client.executeOnBackground('StockFound', stockArray );
-			return Promise.resolve( true );
-		}
-		else
-		{
-			return parser.cartPage.parseAllTheStock( client ).then((products)=>
-			{
-				let notNullProducts = products.filter( p => p !== null );
-
-				let aSArray	= notNullProducts.reduce((array, product)=>
-				{
-					product.stock.forEach( a=> array.push( a ) );
-					return array;
-				},[]);
-
-				if( aSArray.length )
-					client.executeOnBackground('StockArray', aSArray );
-
-				if( settings.page_cart.close_tab )
-					client.closeThisTab();
-			});
-		}
-	})
-	.then(()=>
-	{
-		setTimeout(()=>{ window.location.reload(); }, 20000 );
-	})
-	.catch((e)=>
-	{
-		console.log( e );
-		console.error('Error on parse cart', e );
-	});
-}
-
 function parseSearchPage()
 {
 	checkForRobots().then(()=>
