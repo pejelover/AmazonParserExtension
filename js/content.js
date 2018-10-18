@@ -111,7 +111,7 @@ function parseProductPage()
 		{
 			if( p.asin in settings.product_sellers_preferences )
 			{
-				if( settings.product_sellers_preferences[ p.asin ].indexOf( seller_id ) !== -1 )
+				if( settings.product_sellers_preferences[ p.asin ].indexOf( seller_id ) === -1 )
 				{
 					seller_match = false;
 				}
@@ -130,7 +130,7 @@ function parseProductPage()
 		}
 
 
-		if( p.stock.length && p.stock[0].qty === 'Currently unavailable.' )
+		if( p.stock.length && ( p.stock[0].qty === 'Currently unavailable.' || p.stock[0].qty === 0 ) )
 		{
 			if( !isMerchantProduct )
 			{
@@ -184,6 +184,7 @@ function parseProductPage()
 
 			PromiseUtils.tryNTimes( func, 500, 10 ).catch((e)=>
 			{
+				parser.productPage.followAlternateProductOffers();
 				console.log( e );
 				//document.body.setAttribute("style","background-color:red");
 			});
@@ -759,47 +760,36 @@ var settingsIntialized = false;
 
 if(  window.location.hostname === 'www.amazon.com' )
 {
-	let promise1 = new Promise((resolve,reject)=>
+	client.addListener("SettingsArrive",(newSettings)=>
 	{
-		client.addListener("SettingsArrive",(newSettings)=>
+		settings	= newSettings;
+
+		if( settings.parse_status === "parse_disabled" )
+			return;
+
+		let type = parser.getPageType( window.location.href );
+		if( type === 'PREVIOUS_TO_CART_PAGE' && settings.page_previous_cart.action === 'close_tab' )
 		{
-			settings	= newSettings;
+			client.closeThisTab();
+			return;
+		}
 
-			if( settings.parse_status === "parse_disabled" )
-				return;
-
-			let type = parser.getPageType( window.location.href );
-			if( type === 'PREVIOUS_TO_CART_PAGE' && settings.page_previous_cart.action === 'close_tab' )
-			{
-				client.closeThisTab();
-				return;
-			}
-
-			resolve();
-		});
-	});
-
-	let promise2 = new Promise((resolve,reject)=>
-	{
-		window.addEventListener('load',()=>
-		{
-			console.log('DOcument Load');
-			client.executeOnBackground
-			(
-				"UrlDetected"
-				,{
-					url: window.location.href
-					,type: parser.getPageType( window.location.href )
-				}
-			);
-			resolve();
-		});
-	});
-
-	Promise.all([ promise1, promise2 ]).finally(()=>
-	{
 		parse();
 	});
+
+	window.addEventListener('load',()=>
+	{
+		console.log('DOcument Load');
+		client.executeOnBackground
+		(
+			"UrlDetected"
+			,{
+				url: window.location.href
+				,type: parser.getPageType( window.location.href )
+			}
+		);
+	});
+
 
 	let checkUrl = ()=>
 	{
