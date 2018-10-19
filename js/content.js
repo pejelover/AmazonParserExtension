@@ -1,4 +1,6 @@
+
 (function(){
+
 
 var default_settings = {
 
@@ -22,8 +24,12 @@ var default_settings = {
 	}
 	,page_sellers:
 	{
-		action	: 'do_nothing'
+		add_first	: false
+		,add_amazon : false
+		,add_first_prime: true
+		,close_tab	: false
 		,go_to_next	: false
+
 	}
 	,product_sellers_preferences: {
 	}
@@ -38,7 +44,7 @@ var last_url = window.location.href;
 
 function checkForRobots()
 {
-	return PromiseUtils.resolveAfter( 1200 ,1)
+	return PromiseUtils.resolveAfter( 500 ,1)
 	.then(()=>
 	{
 		let robotsRegex =/Robot\s+Check/i;
@@ -105,7 +111,7 @@ function parseProductPage()
 		{
 			if( p.asin in settings.product_sellers_preferences )
 			{
-				if( seller_id !== settings.product_sellers_preferences[ p.asin ][ 0 ] )
+				if( settings.product_sellers_preferences[ p.asin ].indexOf( seller_id ) === -1 )
 				{
 					seller_match = false;
 				}
@@ -124,7 +130,7 @@ function parseProductPage()
 		}
 
 
-		if( p.stock.length && p.stock[0].qty === 'Currently unavailable.' )
+		if( p.stock.length && ( p.stock[0].qty === 'Currently unavailable.' || p.stock[0].qty === 0 ) )
 		{
 			if( !isMerchantProduct )
 			{
@@ -132,6 +138,10 @@ function parseProductPage()
 
 				if( p.asin in settings.product_sellers_preferences )
 					p.stock[0].seller_id = settings.product_sellers_preferences[ p.asin ][ 0 ];
+			}
+			else
+			{
+				p.stock[0].seller_id = merchantId;
 			}
 		}
 
@@ -143,7 +153,7 @@ function parseProductPage()
 			client.closeThisTab();
 			return;
 		}
-		else if( settings.page_product.add_to_cart && seller_match )
+		else if( settings.page_product.add_to_cart )
 		{
 			if( !parser.productPage.addToCart() )
 			{
@@ -174,6 +184,7 @@ function parseProductPage()
 
 			PromiseUtils.tryNTimes( func, 500, 10 ).catch((e)=>
 			{
+				parser.productPage.followAlternateProductOffers();
 				console.log( e );
 				//document.body.setAttribute("style","background-color:red");
 			});
@@ -204,10 +215,17 @@ function cartIntervalFunction()
 		document.body.setAttribute('style',"background: red;");
 	}
 
-	let p = parser.cartPage.parseFirstItem();
+	let p = parser.cartPage.parseLastItem();
 
 	if( p !== null )
 	{
+
+		if( 'url' in p && p.url )
+		{
+			let url = { url: p.url, type: parser.getPageType( p.url ), time: parser.productUtils.getTime() };
+			client.executeOnBackground('AddUrls', [url] );
+		}
+
 		if( p.stock.length )
 		{
 			client.executeOnBackground('StockFound', p.stock );
@@ -234,7 +252,7 @@ function cartIntervalFunction()
 		}
 		else
 		{
-			let asin = parser.cartPage.getFirstCartItemAsin();
+			let asin = parser.cartPage.getLastCartItemAsin();
 
 			if( asin !== null )
 			{
@@ -317,6 +335,7 @@ function cartIntervalFunction()
 	else
 	{
 		setTimeout(()=>{ location.reload();}, 5000 );
+		clearInterval( cart_interval );
 	}
 
 	cart_blocked = false;
@@ -342,59 +361,9 @@ function parseCart()
 		}
 		else
 		{
-			cart_interval = setInterval( cartIntervalFunction, 500 );
+			if( cart_interval === -1 )
+				cart_interval = setInterval( cartIntervalFunction, 500 );
 		}
-	});
-}
-
-function oldParseCart()
-{
-	checkForRobots().then(()=>
-	{
-
-		if( !settings.page_cart.parse_stock )
-		{
-			let products = parser.cartPage.getProducts();
-
-			let stockArray = products.reduce((array, product)=>
-			{
-				product.stock.forEach( a=> array.push( a ) );
-				return array;
-			},[]);
-
-
-			if( stockArray.length )
-				client.executeOnBackground('StockFound', stockArray );
-			return Promise.resolve( true );
-		}
-		else
-		{
-			return parser.cartPage.parseAllTheStock( client ).then((products)=>
-			{
-				let notNullProducts = products.filter( p => p !== null );
-
-				let aSArray	= notNullProducts.reduce((array, product)=>
-				{
-					product.stock.forEach( a=> array.push( a ) );
-					return array;
-				},[]);
-
-				if( aSArray.length )
-					client.executeOnBackground('StockArray', aSArray );
-
-				if( settings.page_cart.close_tab )
-					client.closeThisTab();
-			});
-		}
-	})
-	.then(()=>
-	{
-		setTimeout(()=>{ window.location.reload(); }, 20000 );
-	})
-	.catch((e)=>
-	{
-		console.log( e );
-		console.error('Error on parse cart', e );
 	});
 }
 
@@ -402,24 +371,61 @@ function parseSearchPage()
 {
 	checkForRobots().then(()=>
 	{
-		return client.waitTillReady( parser.getSearchListSelector(), false );
+		return PromiseUtils.tryNTimes(()=>
+		{
+			let c = document.querySelectorAll( parser.getSearchListSelector( 15 ) );
+			if( c.length === 0 )
+				return false;
+
+			return true;
+		},1000,6);
+	})
+	.finally(()=>
+	{
+		let products = parser.merchantProductsPage.parseProductSearchList();
+
+		if( products.length == 0 )
+			products = parser.parseProductSearchList2();
+
+		let offers = products.reduce((p,c)=>
+		{
+			if('seller_id' in  c )
+				return p;
+
+			c.offers.forEach((offer)=>p.push( offer ) );
+			return p;
+		},[]);
+
+		let stocks = products.reduce((p,c)=>
+		{
+			if( 'seller_id' in c )
+				return p;
+
+			c.stock.forEach((stock)=>p.push( stock ) );
+			return p;
+		},[]);
+
+		if( offers.length )
+			client.executeOnBackground('OffersFound',offers );
+
+		if( stocks.length )
+			client.executeOnBackground('StockFound',stocks );
+
+		let links = parser.getAllLinks();
+		client.executeOnBackground('AddUrls', links );
+		return PromiseUtils.resolveAfter(true,1500);
 	})
 	.then(()=>
 	{
-		let p = parser.parseProductSearchList();
-
-		if( p.length == 0 )
-			p = parser.parseProductSearchList2();
-
-		if( p.stock.length )
-			client.executeOnBackground('StockFound', p.stock );
-
-		if( p.offers.length )
-			client.executeOnBackground('OffersFound', p.offers );
-
-		if( p.length )
-			client.executeOnBackground('ProductsFound', p );
-
+		let next = document.querySelector('#pagnNextLink');
+		if( next )
+		{
+			next.click();
+		}
+		else
+		{
+			document.body.setAttribute('background-color: red');
+		}
 	})
 	.catch((error)=>
 	{
@@ -445,67 +451,147 @@ function parseVendorsPage()
 		return PromiseUtils.resolveAfter( 1, 2000 )
 		.then(()=>
 		{
-			if( settings.page_sellers.action === 'close_tab')
-			{
-				client.closeThisTab();
-			}
-			else if( settings.page_sellers.action === 'do_nothing' )
-			{
+			let addedToCart = false;
 
-			}
-			else if( ["add_cart_first","add_cart_cheapest","add_cart_prime"].indexOf( settings.page_sellers.action ) !== -1 )
+			if( p.asin in settings.product_sellers_preferences )
 			{
-				if( p.asin && p.asin in settings.product_sellers_preferences )
+				addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
 				{
-					let search = settings.product_sellers_preferences[ p.asin ][ 0 ];
+					let search = seller_id;
 
 					if( search === 'ATVPDKIKX0DER' )
 						search = 'amazon.com';
 
-					if( !parser.productSellersPage.addToCartBySellerId( search ) )
-					{
-						if( parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
-						{
-							PromiseUtils.resolveAfter( 1000, 1 )
-							.then(()=>
-							{
-								parser.productSellersPage.goToNextPage();
-							});
-							return;
-						}
-						else
-						{
-							let x = d => d<10 ? "0"+d: d;
-
-							client.executeOnBackground("StockFound",[{
-								asin: p.asin
-								,time: parser.productUtils.date.toISOString()
-								,qty: "N/A"
-								,is_prime: false
-								,seller_id: settings.product_sellers_preferences[ p.asin ][0]
-								,date: parser.productUtils.date.getFullYear()+"-"+x( parser.productUtils.date.getMonth()+1)+"-"+x( parser.productUtils.date.getDate() )
-							}]);
-
-							client.closeThisTab();
-
-							//if( !parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
-							//{
-							//	//parser.productSellersPage.addToCartFirstSeller();
-							//}
-						}
-					}
-					else
-					{
-						return;
-						//Found
-					}
-				}
-				else
-				{
-					parser.productSellersPage.addToCartFirstSeller();
-					return;
-				}
+					return parser.productSellersPage.addToCartBySellerId( search );
+				});
 			}
+
+
+			if( addedToCart )
+				return;
+
+			if( settings.product_sellers_preferences[ p.asin ] && parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
+			{
+				PromiseUtils.resolveAfter( 1000, 1 )
+				.then(()=>
+				{
+					parser.productSellersPage.goToNextPage();
+				});
+				return;
+			}
+
+			if( settings.page_sellers.add_amazon && parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
+			{
+				return;
+			}
+
+
+
+			if( settings.page_sellers.add_first_prime &&  parser.productSellersPage.addToCartFirstPrime() )
+			{
+				return;
+			}
+
+
+			if( parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
+			{
+				PromiseUtils.resolveAfter( 1000, 1 )
+				.then(()=>
+				{
+					parser.productSellersPage.goToNextPage();
+				});
+				return;
+			}
+
+			if( settings.page_sellers.add_first
+				&& parser.productSellersPage.isFirstPage()
+				&& parser.productSellersPage.addToCartFirstSeller() )
+			{
+				return;
+			}
+
+
+			if( settings.page_sellers.add_if_only_one )
+			{
+
+				//return;
+			}
+
+			if( settings.page_sellers.close_tab )
+			{
+				client.closeThisTab();
+				return;
+			}
+
+			//else if( settings.page_sellers.action === 'do_nothing' )
+			//{
+
+			//}
+			//else if( ["add_cart_first","add_cart_cheapest","add_cart_prime"].indexOf( settings.page_sellers.action ) !== -1 )
+			//{
+			//	if( p.asin && p.asin in settings.product_sellers_preferences )
+			//	{
+
+			//		//if( !parser.productSellersPage.addToCartBySellerId( search ) )
+			//		let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
+			//		{
+			//			let search = seller_id;
+
+			//			if( search === 'ATVPDKIKX0DER' )
+			//				search = 'amazon.com';
+
+			//			return parser.productSellersPage.addToCartBySellerId( search );
+			//		});
+
+			//		if( addedToCart )
+			//		{
+			//			//Found added to cart
+			//		}
+			//		else
+			//		{
+			//			if( parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
+			//			{
+			//				PromiseUtils.resolveAfter( 1000, 1 )
+			//				.then(()=>
+			//				{
+			//					parser.productSellersPage.goToNextPage();
+			//				});
+			//				return;
+			//			}
+			//			else
+			//			{
+			//				let x = d => d<10 ? "0"+d: d;
+
+			//				let stock = settings.product_sellers_preferences[ p.asin ].map((seller_id)=>
+			//				{
+			//					return {
+			//						asin: p.asin
+			//						,time: parser.productUtils.date.toISOString()
+			//						,qty: "N/A"
+			//						,is_prime: false
+			//						,seller_id: seller_id
+			//						,date: parser.productUtils.date.getFullYear()+"-"+x( parser.productUtils.date.getMonth()+1)+"-"+x( parser.productUtils.date.getDate() )
+			//						,tag: "added_not_found_bulk"
+			//					};
+			//				});
+
+			//				client.executeOnBackground("StockFound", stock );
+
+			//				client.closeThisTab();
+
+			//				//if( !parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
+			//				//{
+			//				//	//parser.productSellersPage.addToCartFirstSeller();
+			//				//}
+			//			}
+			//		}
+			//	}
+			//	else
+			//	{
+			//		parser.productSellersPage.addToCartFirstSeller();
+			//		return;
+			//	}
+			//}
 		});
 	})
 	.catch((error)=>
@@ -591,8 +677,32 @@ function parse()
 			parseSearchPage();
 			return;
 		}
+		case "MERCHANT_PRODUCTS":
+		{
+			parseSearchPage();
+			//parseMerchantProducts();
+		}
 	}
 }
+
+
+
+function parseMerchantProducts()
+{
+	//PromiseUtils.resolveAfter( 1, 2000 ).then(()=>
+	//{
+	//	let allLinks = parser.getAllLinks();
+	//	client.executeOnBackground('AddUrls',allLinks );
+	//	return PromiseUtils.resolveAfter(1, 1500 );
+	//})
+	//.then(()=>
+	//{
+	//	parser.merchantProductsPage.goToNextPage();
+	//});
+
+	parseSearchPage();
+}
+
 
 
 let checkInterval = null;
@@ -600,7 +710,6 @@ var settingsIntialized = false;
 
 if(  window.location.hostname === 'www.amazon.com' )
 {
-
 	client.addListener("SettingsArrive",(newSettings)=>
 	{
 		settings	= newSettings;
@@ -608,38 +717,45 @@ if(  window.location.hostname === 'www.amazon.com' )
 		if( settings.parse_status === "parse_disabled" )
 			return;
 
-		if( !settingsIntialized )
+		let type = parser.getPageType( window.location.href );
+		if( type === 'PREVIOUS_TO_CART_PAGE' && settings.page_previous_cart.action === 'close_tab' )
 		{
-			settingsIntialized = true;
-
-			parse();
-
-			let checkUrl = ()=>
-			{
-				if( last_url !== window.location.href )
-				{
-					last_url = window.location.href;
-					client.executeOnBackground
-					(
-						"UrlDetected"
-						,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
-					);
-				}
-			};
-
-			if( checkInterval === null )
-				setInterval( checkUrl, 1000 );
+			client.closeThisTab();
+			return;
 		}
+
+		parse();
+	});
+
+	window.addEventListener('load',()=>
+	{
+		console.log('DOcument Load');
+		client.executeOnBackground
+		(
+			"UrlDetected"
+			,{
+				url: window.location.href
+				,type: parser.getPageType( window.location.href )
+			}
+		);
 	});
 
 
-	client.executeOnBackground
-	(
-		"UrlDetected"
-		,{
-			url: window.location.href
-			,type: parser.getPageType( window.location.href )
+	let checkUrl = ()=>
+	{
+		if( last_url !== window.location.href )
+		{
+			last_url = window.location.href;
+			client.executeOnBackground
+			(
+				"UrlDetected"
+				,{ url: window.location.href, type: parser.getPageType( window.location.href ) }
+			);
 		}
-	);
+	};
+
+	if( checkInterval === null )
+		setInterval( checkUrl, 1500 );
 }
+
 })();

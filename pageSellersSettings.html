@@ -50,41 +50,41 @@
 					<input type="checkbox"  name="go_to_next" value="1" id="go_to_next">
 				</div>
 
-
 				<div class="form-check">
-					<input class="form-check-input" type="radio" name="action" value="do_nothing" id="do_nothing">
-					<label class="form-check-label" for="do_nothing">
-						Do nothing
+					<input class="form-check-input" type="checkbox" name="add_first" value="1" id="add_first">
+					<label class="form-check-label" for="add_first">
+						Add first
 					</label>
 				</div>
 
 				<div class="form-check">
-					<input class="form-check-input" type="radio" name="action" value="close_tab" id="close_tab">
+					<input class="form-check-input" type="checkbox" name="add_amazon"  value="1" id="add_amazon" >
+					<label class="form-check-label" for="add_amazon">
+						Add when seller is amazon
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="add_first_prime"  value="1" id="add_first_prime" >
+					<label class="form-check-label" for="add_first_prime">
+						Add first fullfilled by Amazon
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="add_if_only_one"  value="1" id="add_if_only_one">
+					<label class="form-check-label" for="add_if_only_one">
+						Add if there's only one
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="close_tab"  value="1" id="close_tab">
 					<label class="form-check-label" for="close_tab">
 						Close Tab
 					</label>
 				</div>
 
-				<div class="form-check">
-					<input class="form-check-input" type="radio" name="action" value="add_cart_first" id="add_cart_first">
-					<label class="form-check-label" for="add_cart_first">
-						Add cart first
-					</label>
-				</div>
-
-				<div class="form-check">
-					<input class="form-check-input" type="radio" name="action" value="add_cart_cheapest" id="add_cart_cheapest" >
-					<label class="form-check-label" for="add_cart_cheapest">
-						Add cart Cheapest
-					</label>
-				</div>
-
-				<div class="form-check">
-					<input class="form-check-input" type="radio" name="action" value="add_cart_prime" id="add_cart_prime">
-					<label class="form-check-label" for="add_cart_prime">
-						Add Cart Prime
-					</label>
-				</div>
 
 				<label for="product_sellers_config">
 				<textarea id="product_sellers_config"></textarea>
@@ -92,6 +92,7 @@
 				<div style="padding-top: 20px">
 					<button id="saveSettingsButton" class="btn btn-primary btn-sm" type="button">Save</button>
 				</div>
+
 			</form>
 		</div>
 	</body>

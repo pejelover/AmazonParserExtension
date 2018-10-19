@@ -6,7 +6,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 15
+			,version	: 18
 			,stores		:{
 				products:
 				{
@@ -52,13 +52,14 @@ class Persistence
 						,{ indexName: 'seller_id'	,keyPath:'seller_id'	,objectParameters: { uniq: false ,multiEntry: false} }
 					]
 				}
-				,urls:
+				,links:
 				{
-					keyPath: 'url'
-					,autoincrement: false
+					keyPath: 'id'
+					,autoincrement: true
 					,indexes	:
 					[
-						{indexName: 'type', keyPath: 'type', objectParameters:{ uniq: false, multiEntry: true } }
+						{indexName: 'url', keyPath: 'url', objectParameters:{ uniq: false, multiEntry: true } }
+						,{indexName: 'type', keyPath: 'type', objectParameters:{ uniq: false, multiEntry: true } }
 					]
 				}
 				,settings:
@@ -82,6 +83,12 @@ class Persistence
 
 		//this.database.init();
 	}
+
+	addUrls( urls )
+	{
+		return this.database.addItems('links', urls );
+	}
+
 	init()
 	{
 		return this.database.init();
@@ -122,7 +129,7 @@ class Persistence
 
 	updateUrl( url )
 	{
-		return this.database.put( 'urls', url );
+		return this.database.addItems( 'links', [url] );
 	}
 
 	addNotFound( notFoundObj )
@@ -169,13 +176,13 @@ class Persistence
 			return prev;
 		},[]);
 
-		return this.database.updateItems('stock', filtered );
+		return this.database.addItems( 'stock', filtered );
 	}
 
 	addOffers( offersArray )
 	{
 		let filtered = offersArray.filter( offer => 'price' in offer && 'time' in offer );
-		return this.database.updateItems( 'offers', filtered );
+		return this.database.addItems( 'offers', filtered );
 	}
 
 	getOffers(date1,data2Keys)
@@ -253,8 +260,8 @@ class Persistence
 		return this.database.updateItems('products', list );
 	}
 
-/*
-	optimize()
+	/*
+	optimizeStock()
 	{
 		return this.database.count( storeName, {}).then((offersCount)=>
 		{
@@ -276,7 +283,6 @@ class Persistence
 			{
 				return this.database.getAll('stock', newOptions ).then(( stockList )=>
 				{
-//
 					let allKeys = {};
 					let toDelete = [];
 
@@ -311,7 +317,6 @@ class Persistence
 
 					newOptions[ '>=' ] = last_id;
 					return this.database.deleteByKeyIds('stock',toDelete );
-//
 				});
 			};
 
@@ -322,8 +327,7 @@ class Persistence
 			});
 		});
 	}
-*/
-
+	*/
 
 	getAllIncremental( storeName, options , indexName )
 	{
@@ -357,7 +361,7 @@ class Persistence
 
 			let generator = ()=>
 			{
-				return this.database.getAll('stock', newOptions ).then((all)=>
+				return this.database.getAll(storeName, newOptions ).then((all)=>
 				{
 					newOptions[ '>=' ] = all[ all.length-1 ][ indexName ];
 					console.log('Start', newOptions[ '>='] );
@@ -468,6 +472,15 @@ class Persistence
 		});
 
 		return s;
+	}
+
+	getUrlList( date1, date2 )
+	{
+		let option = {
+			'>=':0
+		}
+
+		return this.getAllIncremental( 'links',{ '>=': 0 },'id');
 	}
 
 	generateHistoricReportByDays( productsArray, date1, date2 )
@@ -731,9 +744,11 @@ class Persistence
 		};
 	}
 
-	getDownloadHref( object )
+	getDownloadHref( object, contentType )
 	{
-		var blob = new Blob([JSON.stringify( object , null, 2)], {type : 'application/json'});
+		let ctype = contentType ? contentType : 'application/json';
+
+		var blob = new Blob([typeof object === 'string' ? object : JSON.stringify( object , null, 2)], {type :  ctype });
 		let objectURL = URL.createObjectURL( blob );
 		return objectURL;
 	}
@@ -904,6 +919,14 @@ class Persistence
 					result[ i ] = default_settings[ i ];
 			}
 
+			for( let i in default_settings.page_sellers )
+			{
+				if( !( i in result.page_sellers ) )
+				{
+					result.page_sellers[ i ] = default_settings.page_sellers;
+				}
+			}
+
 			return result;
 		})
 		.catch((e)=>
@@ -979,7 +1002,7 @@ class Persistence
 	}
 
 
-	optimizeAlStock()
+	optimizeAllStock()
 	{
 		return this.database.count( 'stock' ).then((stockCount)=>
 		{
@@ -995,7 +1018,7 @@ class Persistence
 
 			return PromiseUtils.runSequential(a,()=>
 			{
-				return optimizeStock(start,100000).then((last_id)=>
+				return this.optimizeStock(start,100000).then((last_id)=>
 				{
 					start = last_id;
 					return Promise.resolve(true);
@@ -1097,6 +1120,39 @@ class Persistence
 
 	//	return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
 	//}
+
+
+	getUrlsReport()
+	{
+		return this.getAllIncremental( 'links',{ '>=': 0 },'id').then((links)=>
+		{
+			let a = new AmazonParser();
+			let report = [['asin','seller_id','seller name', 'url']];
+
+			links.forEach((link)=>
+			{
+				if( link.type != 'PRODUCT_PAGE' )
+					return;
+
+				let url = link.url;
+				let asin = a.getAsinFromUrl( url );
+
+				let seller_name = 'seller_id' in link ? link.seller_id : '';
+				let seller_id = '';
+
+				let params = a.getParameters( url );
+
+				if( params.has('m') )
+				{
+					seller_id = params.get('m');
+				}
+
+				report.push([asin, seller_id, seller_name, url ]);
+			});
+
+			return Promise.resolve( report );
+		});
+	}
 
 	getStockReportArray( stockArray, product_sellers_preferences )
 	{
@@ -1208,17 +1264,5 @@ class Persistence
 		});
 
 		return Object.values( indexes );
-
-		//let emptyArray = [];
-		//arrayResult.push( allKeysColumns );
-		//allValues.forEach((item)=>{
-		//	let row = emptyArray.slice(0);
-		//	allKeysColumns.forEach((i,index)=>
-		//	{
-		//		row[ index ] = i in item ? item[i] : '';
-		//	});
-		//	arrayResult.push( row );
-		//});
-		//return arrayResult;
 	}
 }

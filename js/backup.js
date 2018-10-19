@@ -3,6 +3,16 @@ document.addEventListener('DOMContentLoaded', function()
 	//var ext = new Client();
 	let persistence = new Persistence();
 
+	Utils.getById('optimize').addEventListener('click',(evt)=>
+	{
+		Utils.stopEvent( evt );
+		persistence.optimizeAllStock().then(()=>
+		{
+			console.log('Ends');
+			Utils.alert('Optimization Ends');
+		});
+	});
+
 	Utils.getById('backupGenerateBackupFile').addEventListener('click',(evt)=>
 	{
 		Utils.stopEvent( evt );
@@ -14,9 +24,9 @@ document.addEventListener('DOMContentLoaded', function()
 			case 'Products':
 			{
 
-				let start = '2018-07-20T05:26:00.000Z';
+				let start = '0040423131';
 
-				return persistence.getAllIncremental('products',{index: 'time', '>=': start },'time')
+				return persistence.getAllIncremental('products',{ '>=': start },'asin')
 				.then((productList)=>
 				{
 					let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });
@@ -109,6 +119,27 @@ document.addEventListener('DOMContentLoaded', function()
 				.catch((e)=>
 				{
 					Utils.alert('An error occurred please try again later');
+				});
+			}
+			case 'Urls':
+			{
+				let option = {
+					'>=':0
+				};
+
+				persistence.getAllIncremental( 'links',{ '>=': 0 },'id')
+				.then((links)=>
+				{
+
+					let href = persistence.getDownloadHref({ products: [], stock: [], offers: [], links: links });
+					Utils.getById('backupStatus').innerHTML = '';
+					let date = new Date();
+					let anchor = window.document.createElement('a');
+					anchor.setAttribute('download', 'STOCK_backup_'+date.toISOString()+'.json');
+					anchor.setAttribute('href', href );
+					anchor.textContent = 'Backup_Links'+date.toISOString();
+					anchor.classList.add('button');
+					Utils.getById('backupStatus').append( anchor );
 				});
 			}
 		}
