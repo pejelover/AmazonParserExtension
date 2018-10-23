@@ -12,6 +12,7 @@ dist/js/AmazonParser/CartPage.js \
 dist/js/AmazonParser/Prev2Cart.js \
 dist/js/AmazonParser/ProductSellersPage.js \
 dist/js/AmazonParser/AmazonParser.js \
+dist/js/AmazonParser/MerchantProducts.js \
 dist/js/extension-framework/Client.js \
 dist/js/content.js
 
@@ -27,6 +28,13 @@ dist/js/Promise-Utils/PromiseUtils.js \
 dist/js/extension-framework/Server.js \
 dist/js/db-finger/DatabaseStore.js \
 dist/js/AmazonParser/ProductUtils.js \
+dist/js/AmazonParser/ProductPage.js \
+dist/js/AmazonParser/CartPage.js \
+dist/js/AmazonParser/Prev2Cart.js \
+dist/js/AmazonParser/ProductSellersPage.js \
+dist/js/AmazonParser/AmazonParser.js \
+dist/js/AmazonParser/MerchantProducts.js \
 dist/js/defaultSettings.js \
 dist/js/Persistence.js \
 dist/js/background.js
+
