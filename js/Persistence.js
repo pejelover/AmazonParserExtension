@@ -643,41 +643,24 @@ class Persistence
 		return s;
 	}
 
-	generateHistoricPriceReport( productsArray )
+	generateHistoricPriceReport( offers )
 	{
 		let keys 		= Object.keys( this.getValidHistoricPriceKeys() );
 
 		let s = keys.join('\t')+'\n';
 		let days	= {};
 
-		productsArray.forEach(( product )=>
+		offers.forEach((offer)=>
 		{
-			if( !('offers' in product ) )
+			let row = [];
+
+			keys.forEach((key)=>
 			{
-				return;
-			}
-			console.log(".");
-
-			product.offers.forEach((offer)=>
-			{
-				let row = [];
-
-				keys.forEach((key)=>
-				{
-					if( key == "asin" || key == "title" )
-					{
-						row.push( this.getValueFromRow( key, product ) );
-					}
-					else
-					{
-						row.push( this.getValueFromRow( key, offer ) );
-					}
-				});
-
-				s+= row.join('\t')+'\n';
+				row.push( this.getValueFromRow( key, offer ) );
 			});
-		});
 
+			s+= row.join('\t')+'\n';
+		});
 		return s;
 	}
 
@@ -938,7 +921,6 @@ class Persistence
 
 	getPriceReport( priceArray )
 	{
-
 		let allColumns			= {
 			'asin'	: 0
 			,'seller_id' : 1
@@ -1027,6 +1009,11 @@ class Persistence
 		});
 	}
 
+	getAllOffers()
+	{
+		return this.getAllIncremental( 'offers',{ '>=': 0 },'id');
+	}
+
 	optimizeStock(start, count)
 	{
 		let allKeys = {};
@@ -1098,7 +1085,6 @@ class Persistence
 		{
 			s+= i.join("\t")+"\n";
 		});
-
 
 		return s;
 	}
