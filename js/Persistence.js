@@ -1001,6 +1001,123 @@ class Persistence
 		return finalArray.reduce( (prev, item ) => {  return prev + item.join("\t")+"\n"; }, '' );
 	}
 
+	optimizeLinks(start, count)
+	{
+		let allKeys = {};
+		let toDelete = [];
+		let last_id = null;
+
+		let a  = new AmazonParser();
+
+		return this.database.getAll('links',{ '>': start, 'count': count })
+		.then((linksList)=>
+		{
+			let links2Update = [];
+
+			linksList.forEach(( link )=>
+			{
+				let toUpdate = false;
+
+				if( !('seller_id' in link && 'asin' in link ) )
+				{
+					let toUpdate = true;
+					let params = a.getParameters( link.url );
+
+					if( !('seller_id' in link ) )
+					{
+						if( params.has('m') )
+						{
+							link.seller_id = params.get('m');
+						}
+						else if( params.has('smid') )
+						{
+							link.seller_id = params.get('smid');
+						}
+						else if( params.has('s') )
+						{
+							link.s  = params.get('s');
+						}
+						else if( params.has('merchant') )
+						{
+							link.merchant = params.get('merchant');
+						}
+						else
+						{
+							link.seller_id = null;
+						}
+					}
+
+					if( !('asin' in link) )
+					{
+						link.asin = a.getAsinFromUrl( link.url );
+					}
+				}
+
+				if( link.asin && link.seller_id )
+				{
+					let key = link.asin+link.seller_id;
+
+					if( key in allKeys )
+					{
+						toDelete.push( link.id );
+					}
+					else
+					{
+						if( toUpdate )
+						{
+							links2Update.push( link );
+						}
+						allKeys[ key ] = 1;
+						last_id = link.id;
+					}
+				}
+				else
+				{
+					last_id = link.id;
+				}
+			});
+
+			return this.database.deleteByKeyIds('links',toDelete ).then((deleted)=>
+			{
+				console.log('Links deleted '+deleted );
+				console.log('to Update '+links2Update.length );
+
+				this.database.putItems('links',links2Update ).then(()=>
+				{
+					return Promise.resolve( deleted );
+				});
+			});
+		})
+		.then(()=>
+		{
+			return last_id;
+		});
+	}
+
+	optimizeAllUrls()
+	{
+		return this.database.count( 'links' ).then((linksCount)=>
+		{
+			let start 	= 1;
+			let count	= linksCount/100000;
+
+			if( count !== Math.floor( count ) )
+				count = Math.floor( count )+1;
+
+			let a = Array( count );
+			a.fill( 0 );
+
+			return PromiseUtils.runSequential(a,()=>
+			{
+				console.log('Optimizing start', start );
+				return this.optimizeLinks(start,100000).then((last_id)=>
+				{
+					start = last_id;
+					return Promise.resolve(true);
+				});
+			});
+		});
+	}
 
 	optimizeAllStock()
 	{
@@ -1122,6 +1239,12 @@ class Persistence
 	//}
 
 
+	optimizeUrls()
+	{
+
+
+	}
+
 	getUrlsReport()
 	{
 		return this.getAllIncremental( 'links',{ '>=': 0 },'id').then((links)=>
@@ -1147,7 +1270,8 @@ class Persistence
 					seller_id = params.get('m');
 				}
 
-				report.push([asin, seller_id, seller_name, url ]);
+				if( asin && seller_id )
+					report.push([asin, seller_id, seller_name, url ]);
 			});
 
 			return Promise.resolve( report );

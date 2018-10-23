@@ -51,10 +51,17 @@ ext.addListener('PageNotFound',(url,request,tab_id )=>
 
 ext.addListener('UrlDetected',(url,request,tab_id, port )=>
 {
-	persistence.updateUrl( request ).then(()=>
+	if( /\/gp\/huc\/view.html\?.*newItems=.*$/.test( url ) && settings.page_previous_cart.action === 'close_tab' )
 	{
-		ext.executeOnClients('SettingsArrive', settings, port );
-	});
+		chrome.tabs.remove( tab_id );
+	}
+	else
+	{
+		persistence.updateUrl( request ).then(()=>
+		{
+			ext.executeOnClients('SettingsArrive', settings, port );
+		});
+	}
 });
 
 ext.addListener('SettingsChange',()=>
