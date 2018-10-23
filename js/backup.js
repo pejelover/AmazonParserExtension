@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', function()
 	Utils.getById('optimize').addEventListener('click',(evt)=>
 	{
 		Utils.stopEvent( evt );
-		persistence.optimizeAllStock().then(()=>
+		//persistence.optimizeAllStock().then(()=>
+		persistence.optimizeAllUrls().then(()=>
 		{
 			console.log('Ends');
 			Utils.alert('Optimization Ends');
@@ -205,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function()
 			});
 		})
 		.then((allRecords)=>
-		{
+	{
 			let href = persistence.getDownloadHref({ products: [], stock: [] , offers: allRecords });
 			let date = new Date();
 			let anchor= Utils.getById("backupOffers");
