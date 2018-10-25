@@ -128,16 +128,6 @@ ext.addListener('ProductsFound',(url,request,tab_id, port )=>
 {
 	if( Array.isArray( request ) && request.length )
 	{
-		//let offers = request.reduce((prev,product)=>
-		//{
-		//	product.offers.forEach( i=> prev.push( i ) );
-		//	return prev;
-		//});
-
-		//if( offers.length )
-		//	persistence.addOffers( offers );
-
-		//console.log('products found', request );
 		persistence.updateProductLists( request );
 	}
 });
