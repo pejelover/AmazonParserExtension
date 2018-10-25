@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded',()=>
 			productPageSettings.add_to_cart =  'add_to_cart' in productPageSettings;
 			productPageSettings.close_if_stock_found	= 'close_if_stock_found' in productPageSettings;
 			productPageSettings.goto_sellers_pages		=  'goto_sellers_pages' in productPageSettings;
+			productPageSettings.timeout					= 'timeout' in productPageSettings ? parseInt( productPageSettings.timeout ,10 ) : 0;
+
+			if( isNaN( productPageSettings.timeout ) )
+			{
+				productPageSettings.timeout = 0;
+			}
 
 			settings.page_product = productPageSettings;
 

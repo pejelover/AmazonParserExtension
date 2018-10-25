@@ -11,6 +11,7 @@ var default_settings = {
 		,add_to_cart : false
 		,close_if_stock_found: false
 		,goto_sellers_pages	: false
+		,timeout	: 0
 	}
 	,page_cart:
 	{
@@ -79,6 +80,12 @@ function checkForRobots()
 
 function parseProductPage()
 {
+
+	if( timeout in settings.page_product && settings.page_product.timeout && !isNaN( settings.page_product.timeout ) && settings.timeout > 0 )
+	{
+		setTimeout(()=>{ client.closeThisTab();}, settings.page_product.timeout*1000  );
+	}
+
 	checkForRobots().then(()=>
 	{
 		let p = parser.productPage.getProduct();

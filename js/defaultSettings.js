@@ -7,6 +7,7 @@ var default_settings = {
 		,add_to_cart : false
 		,close_if_stock_found: false
 		,goto_sellers_pages	: false
+		,timeout			: 0
 	}
 	,page_cart:
 	{
