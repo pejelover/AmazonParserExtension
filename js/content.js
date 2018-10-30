@@ -81,7 +81,7 @@ function checkForRobots()
 function parseProductPage()
 {
 
-	if( timeout in settings.page_product && settings.page_product.timeout && !isNaN( settings.page_product.timeout ) && settings.timeout > 0 )
+	if( 'timeout' in settings.page_product && settings.page_product.timeout && !isNaN( settings.page_product.timeout ) && settings.timeout > 0 )
 	{
 		setTimeout(()=>{ client.closeThisTab();}, settings.page_product.timeout*1000  );
 	}

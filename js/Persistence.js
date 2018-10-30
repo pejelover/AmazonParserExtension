@@ -1190,7 +1190,7 @@ class Persistence
 		});
 	}
 
-	getQtyABestValue(  oldValue ,newValue)
+	getQtyABestValue(  oldValue ,newValue )
 	{
 		if( oldValue === undefined || oldValue === null )
 			return newValue === undefined ? null : newValue;
@@ -1202,6 +1202,15 @@ class Persistence
 			|| newValue === 'N/A'
 			|| ( (newValue === '""' || newValue === "" ) && oldValue !== null && oldValue !== undefined ) )
 				return oldValue === undefined ? null : oldValue;
+
+
+		let a = parseInt( oldValue,10 );
+		let b = parseInt( newValue,10 );
+
+		if( !isNaN( a ) && !isNaN( b ) )
+		{
+			return a < b ? a : b;
+		}
 
 		return newValue;
 	}
