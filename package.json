@@ -13,6 +13,7 @@
     "gulp-rename": "^1.4.0",
     "gulp-sass": "^4.0.2",
     "npm": "^6.4.1",
+    "merge-stream": "^1.0.1",
     "promiseutil": "^1.0.9"
   },
   "devDependencies": {
