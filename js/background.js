@@ -38,6 +38,7 @@ ext.addListener('AddUrls',(url,request,tab_id,port)=>
 {
 	if( Array.isArray( request ) && request.length  )
 	{
+		console.log('Urls Found', request.length );
 		persistence.addUrls( request );
 	}
 });
@@ -129,5 +130,15 @@ ext.addListener('ProductsFound',(url,request,tab_id, port )=>
 	if( Array.isArray( request ) && request.length )
 	{
 		persistence.updateProductLists( request );
+	}
+});
+
+chrome.commands.onCommand.addListener(function(command)
+{
+	//console.log('Comman received',command );
+
+	if( command === "get_all_links" )
+	{
+		ext.executeOnClients('ExtractAllLinks',{});
 	}
 });

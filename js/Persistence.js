@@ -1259,28 +1259,27 @@ class Persistence
 		return this.getAllIncremental( 'links',{ '>=': 0 },'id').then((links)=>
 		{
 			let a = new AmazonParser();
-			let report = [['asin','seller_id','seller name', 'url']];
+			let report = [['asin','seller_id','seller name', 'url', 'time']];
 
 			links.forEach((link)=>
 			{
-				if( link.type != 'PRODUCT_PAGE' )
-					return;
 
 				let url = link.url;
 				let asin = a.getAsinFromUrl( url );
 
-				let seller_name = 'seller_id' in link ? link.seller_id : '';
+				let seller_name = '';//'seller_id' in link ? link.seller_id : '';
 				let seller_id = '';
 
-				let params = a.getParameters( url );
+				//let params = a.getParameters( url );
 
-				if( params.has('m') )
-				{
-					seller_id = params.get('m');
-				}
+				//if( params.has('m') )
+				//{
+				//	seller_id = params.get('m');
+				//}
 
-				if( asin && seller_id )
-					report.push([asin, seller_id, seller_name, url ]);
+				let time =  'time' in link && link.time ? link.time : '';
+
+				report.push([asin, seller_id, seller_name, url, time ]);
 			});
 
 			return Promise.resolve( report );

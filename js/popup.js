@@ -1,8 +1,7 @@
 
-
 document.addEventListener('DOMContentLoaded', function()
 {
-
+	var client = new Client();
 	var persistence = new Persistence();
 	persistence.init();
 
@@ -13,15 +12,25 @@ document.addEventListener('DOMContentLoaded', function()
 	};
 
 	Utils.getById("date1").value = date.getFullYear()+"-"+f( date.getMonth()+1 )+"-"+date.getDate();
+
 	//Utils.getById("date2").value = date1.toISOString();
-
-
 	//var ext = new Client();
 
 	chrome.windows.getCurrent((w)=>
 	{
 		//ext.executeOnBackground('RegisterWindow', { window_id : w.id	});
 	});
+
+	document.getElementById('parseAgain').addEventListener('click',(evt)=>
+	{
+		client.executeOnClients('ParseAgain',{});
+	});
+
+	document.getElementById('extractLinks').addEventListener('click',(evt)=>
+	{
+		client.executeOnClients('ExtractAllLinks',{});
+	});
+
 
 	document.getElementById('downloadButton').addEventListener('click',(evt)=>
 	{
@@ -74,7 +83,24 @@ document.addEventListener('DOMContentLoaded', function()
 				//	Utils.alert('An error occorred');
 				//});
 
-				persistence.getUrlsReport()
+				let date1 = null;
+				let date2 = null;
+
+				let date1String = Utils.getById("date1").value;
+				let date2String = Utils.getById("date2").value;
+
+				if( date1String )
+				{
+					date1 = new Date( date1String );
+				}
+
+				if( date2String )
+				{
+					date2 = new Date( date2String );
+				}
+
+
+				persistence.getUrlsReport( date1, date2 )
 				.then((allUrls)=> {
 					let filename = 'Foooo.csv';
 					let string = allUrls.reduce((p,c)=>{

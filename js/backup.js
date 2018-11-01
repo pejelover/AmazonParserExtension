@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function()
 					Utils.alert('An error occurred please try again later');
 				});
 			}
-			case 'Urls':
+			case 'Links':
 			{
 				let option = {
 					'>=':0

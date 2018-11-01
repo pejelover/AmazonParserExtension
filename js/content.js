@@ -175,27 +175,37 @@ function parseProductPage()
 					//document.body.setAttribute("style","background-color:red");
 				});
 			}
+			else if( settings.page_previous_cart.action === 'close_tab' )
+			{
+				PromiseUtils.resolveAfter( 1, 7000 ).then(()=>
+				{
+					client.closeThisTab();
+				});
+			}
+
 			return;
 		}
 		else if( settings.page_product.goto_sellers_pages )
 		{
-			if( isMerchantProduct )
-			{
-				window.location.href = window.location.href.replace('m='+merchantId,'');
-				return;
-			}
-			let func= ()=> {
-				console.log('Trying another');
-				return parser.productPage.followPageProductOffers();
-			};
 
-			PromiseUtils.tryNTimes( func, 500, 10 ).catch((e)=>
-			{
-				parser.productPage.followAlternateProductOffers();
-				console.log( e );
-				//document.body.setAttribute("style","background-color:red");
-			});
-			return;
+			client.closeThisTab();
+			//if( isMerchantProduct )
+			//{
+			//	window.location.href = window.location.href.replace('m='+merchantId,'');
+			//	return;
+			//}
+			//let func= ()=> {
+			//	console.log('Trying another');
+			//	return parser.productPage.followPageProductOffers();
+			//};
+
+			//PromiseUtils.tryNTimes( func, 500, 10 ).catch((e)=>
+			//{
+			//	parser.productPage.followAlternateProductOffers();
+			//	console.log( e );
+			//	//document.body.setAttribute("style","background-color:red");
+			//});
+			//return;
 		}
 		else if( settings.page_product.close_tab )
 		{
@@ -607,6 +617,12 @@ function parseVendorsPage()
 	});
 }
 
+
+client.addListener('ExtractAllLinks',()=>
+{
+	let links = parser.getAllLinks();
+	client.executeOnBackground('AddUrls', links );
+});
 
 client.addListener("ParseAgain",()=>
 {

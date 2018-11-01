@@ -38,4 +38,13 @@
 	]
 	,"browser_action":{ "default_icon": "images/icon.png" ,"default_popup": "popup.html" }
 	,"permissions": [ "tabs","<all_urls>","unlimitedStorage"]
+	,"commands":
+  	{
+  	    "get_all_links":
+  	    {
+  	        "description": "Get All Links of the page",
+  	        "suggested_key": { "default": "Ctrl+Shift+L" }
+  	    }
+  	}
+
 }
