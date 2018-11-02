@@ -510,12 +510,12 @@ function parseVendorsPage()
 				return;
 			}
 
-			if( settings.page_sellers.add_first
-				&& parser.productSellersPage.isFirstPage()
-				&& parser.productSellersPage.addToCartFirstSeller() )
-			{
-				return;
-			}
+			//if( settings.page_sellers.add_first
+			//	&& parser.productSellersPage.isFirstPage()
+			//	&& parser.productSellersPage.addToCartFirstSeller() )
+			//{
+			//	return;
+			//}
 
 
 			if( settings.page_sellers.add_if_only_one )
@@ -529,76 +529,6 @@ function parseVendorsPage()
 				client.closeThisTab();
 				return;
 			}
-
-			//else if( settings.page_sellers.action === 'do_nothing' )
-			//{
-
-			//}
-			//else if( ["add_cart_first","add_cart_cheapest","add_cart_prime"].indexOf( settings.page_sellers.action ) !== -1 )
-			//{
-			//	if( p.asin && p.asin in settings.product_sellers_preferences )
-			//	{
-
-			//		//if( !parser.productSellersPage.addToCartBySellerId( search ) )
-			//		let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
-			//		{
-			//			let search = seller_id;
-
-			//			if( search === 'ATVPDKIKX0DER' )
-			//				search = 'amazon.com';
-
-			//			return parser.productSellersPage.addToCartBySellerId( search );
-			//		});
-
-			//		if( addedToCart )
-			//		{
-			//			//Found added to cart
-			//		}
-			//		else
-			//		{
-			//			if( parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
-			//			{
-			//				PromiseUtils.resolveAfter( 1000, 1 )
-			//				.then(()=>
-			//				{
-			//					parser.productSellersPage.goToNextPage();
-			//				});
-			//				return;
-			//			}
-			//			else
-			//			{
-			//				let x = d => d<10 ? "0"+d: d;
-
-			//				let stock = settings.product_sellers_preferences[ p.asin ].map((seller_id)=>
-			//				{
-			//					return {
-			//						asin: p.asin
-			//						,time: parser.productUtils.date.toISOString()
-			//						,qty: "N/A"
-			//						,is_prime: false
-			//						,seller_id: seller_id
-			//						,date: parser.productUtils.date.getFullYear()+"-"+x( parser.productUtils.date.getMonth()+1)+"-"+x( parser.productUtils.date.getDate() )
-			//						,tag: "added_not_found_bulk"
-			//					};
-			//				});
-
-			//				client.executeOnBackground("StockFound", stock );
-
-			//				client.closeThisTab();
-
-			//				//if( !parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
-			//				//{
-			//				//	//parser.productSellersPage.addToCartFirstSeller();
-			//				//}
-			//			}
-			//		}
-			//	}
-			//	else
-			//	{
-			//		parser.productSellersPage.addToCartFirstSeller();
-			//		return;
-			//	}
-			//}
 		});
 	})
 	.catch((error)=>

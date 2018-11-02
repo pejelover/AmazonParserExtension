@@ -7,11 +7,12 @@ document.addEventListener('DOMContentLoaded', function()
 	{
 		Utils.stopEvent( evt );
 		//persistence.optimizeAllStock().then(()=>
-		persistence.optimizeAllUrls().then(()=>
-		{
-			console.log('Ends');
-			Utils.alert('Optimization Ends');
-		});
+		//persistence.optimizeAllUrls().then(()=>
+		//{
+		//	console.log('Ends');
+		//	Utils.alert('Optimization Ends');
+		//});
+		persistence.deleteBadValues();
 	});
 
 	Utils.getById('backupGenerateBackupFile').addEventListener('click',(evt)=>

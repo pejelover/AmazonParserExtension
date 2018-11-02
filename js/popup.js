@@ -120,10 +120,14 @@ document.addEventListener('DOMContentLoaded', function()
 			}
 			case 'historic_price':
 			{
-				let s = persistence.generateHistoricPriceReport( products );
-				let date = new Date();
-				let filename= 'Historic_price_'+(date.toISOString().substring(0,10) )+'.csv';
-				download(filename,s);
+
+				persistence.getAllIncremental( 'offers',{ '>=': 0 },'id').then((array)=>
+				{
+					let s  = persistence.getPriceReport( array  );//.then((result)=>
+					let date = new Date();
+					let filename= 'Historic_price_'+(date.toISOString().substring(0,10) )+'.csv';
+					download(filename, s );
+				});
 				break;
 			}
 		}
