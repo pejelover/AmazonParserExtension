@@ -102,21 +102,23 @@ class Persistence
 	{
 		//2018-09-27T21:44:00.000Z
 		//2018-09-27T21:41:00.000Z
-		this.database.getAll('stock',{ index:'time','>=':"2018-09-27T21:40:00.000Z", '<=':'2018-09-28T22:45:00.000Z'}).then((all)=>
-		{
-			let toRemove = [];
-			all.forEach((z)=>
-			{
-				let qty = this.productUtils.getQty( z.qty );
+		//this.database.getAll('stock',{ index:'time','>=':"2018-09-27T21:40:00.000Z", '<=':'2018-09-28T22:45:00.000Z'}).then((all)=>
+		//{
+		//	let toRemove = [];
+		//	all.forEach((z)=>
+		//	{
+		//		let qty = this.productUtils.getQty( z.qty );
 
-				if( qty === '999' ||  qty === 999 )
-				{
-					toRemove.push( z.id );
-				}
-			});
+		//		if( qty === '999' ||  qty === 999 )
+		//		{
+		//			toRemove.push( z.id );
+		//		}
+		//	});
 
-			return this.database.deleteByKeyIds('stock',toRemove );
-		})
+		//	return this.database.deleteByKeyIds('stock',toRemove );
+		//})
+
+		this.database.removeAll('offers',{ '<=':696057 } )
 		.then((deleted)=>
 		{
 			console.log('Deleted', deleted );
@@ -936,9 +938,14 @@ class Persistence
 		});
 	}
 
-	getPriceReport( priceArray )
-	{
 
+	getAllPrices()
+	{
+		return this.database.getAll('offers',{});
+	}
+
+	getPriceReport( offers )
+	{
 		let allColumns			= {
 			'asin'	: 0
 			,'seller_id' : 1
@@ -947,9 +954,9 @@ class Persistence
 
 		let transformedObjects	= [];
 
-		priceArray.forEach((offer)=>
+		offers.forEach((offer)=>
 		{
-			if( !('asin' in offer && 'price' in offer && 'time') )
+			if( !('asin' in offer && 'price' in offer && 'time' in offer ) )
 				return;
 
 			let date = new Date( offer.time );
@@ -960,11 +967,10 @@ class Persistence
 			date2.setTime( date.getTime() );
 			let dateString = date2.getFullYear()+'-'+f( date2.getMonth()+1 )+'-'+f( date2.getDate() );
 			let fObject = { id: offer.asin+'-'+offer.seller_id, asin: offer.asin, seller_id: offer.seller_id };
-			fObject[ dateString ] = offer.price;
+			fObject[ dateString ] = offer.price.replace(/^\$/,'');
 			transformedObjects.push(  fObject );
 			allColumns[ dateString ] = Object.keys( allColumns ).length;
 		});
-
 
 		let columnSorter = (a,b)=>
 		{
@@ -974,7 +980,7 @@ class Persistence
 			return allColumns[ a ] < allColumns[ b ] ? -1 : 1;
 		};
 
-		let columns = Object.values( allColumns ).sort( columnSorter );
+		let columns = Object.keys( allColumns ).sort( columnSorter );
 
 		let itemFilter		= null;
 
@@ -988,7 +994,7 @@ class Persistence
 		//genericIndexTableGenerator( array ,index_id ,itemFilter, allKeysColumns, itemSelector, valueMapperGetter )
 		let finalArray = this.genericIndexTableGenerator
 		(
-			priceArray //array
+			transformedObjects//array
 			,'id' //index_id
 			,itemFilter
 			,columns
