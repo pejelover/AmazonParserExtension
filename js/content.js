@@ -396,7 +396,7 @@ function parseSearchPage()
 
 		let offers = products.reduce((p,c)=>
 		{
-			if('seller_id' in  c )
+			if(!c || !('seller_id' in  c) )
 				return p;
 
 			c.offers.forEach((offer)=>p.push( offer ) );
@@ -405,7 +405,7 @@ function parseSearchPage()
 
 		let stocks = products.reduce((p,c)=>
 		{
-			if( 'seller_id' in c )
+			if(!c ||  !('seller_id' in c) )
 				return p;
 
 			c.stock.forEach((stock)=>p.push( stock ) );
