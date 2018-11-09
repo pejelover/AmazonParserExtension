@@ -350,6 +350,10 @@ class Persistence
 				newOptions.count = 100000;
 			}
 
+			if( offersCount === 0 )
+			{
+				return Promise.resolve( [] );
+			}
 
 			let start 	= 1;
 			let count	= offersCount/newOptions.count;
@@ -365,6 +369,9 @@ class Persistence
 			{
 				return this.database.getAll(storeName, newOptions ).then((all)=>
 				{
+					if( all.length === 0 )
+						return promise.resolve( 1 );
+
 					newOptions[ '>=' ] = all[ all.length-1 ][ indexName ];
 					console.log('Start', newOptions[ '>='] );
 					allRecords.push( ...all );
@@ -1276,12 +1283,12 @@ class Persistence
 				let seller_name = '';//'seller_id' in link ? link.seller_id : '';
 				let seller_id = '';
 
-				//let params = a.getParameters( url );
+				let params = a.getParameters( url );
 
-				//if( params.has('m') )
-				//{
-				//	seller_id = params.get('m');
-				//}
+				if( params.has('m') )
+				{
+					seller_id = params.get('m');
+				}
 
 				let time =  'time' in link && link.time ? link.time : '';
 
