@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function()
 					Utils.getById('backupStatus').innerHTML = '';
 					let date = new Date();
 					let anchor = window.document.createElement('a');
-					anchor.setAttribute('download', 'STOCK_backup_'+date.toISOString()+'.json');
+					anchor.setAttribute('download', 'LINKS_backup_'+date.toISOString()+'.json');
 					anchor.setAttribute('href', href );
 					anchor.textContent = 'Backup_Links'+date.toISOString();
 					anchor.classList.add('button');
@@ -180,6 +180,10 @@ document.addEventListener('DOMContentLoaded', function()
 				.then(()=>
 				{
 					return persistence.addOffers( obj.offers );
+				})
+				.then(()=>
+				{
+					return persistence.addUrls( obj.links );
 				})
 				.then((result)=>
 				{
