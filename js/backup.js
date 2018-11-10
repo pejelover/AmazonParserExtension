@@ -106,6 +106,8 @@ document.addEventListener('DOMContentLoaded', function()
 			{
 				return persistence.getStockList( null, null ).then((stock)=>
 				{
+						stock.forEach((i)=> { delete i.id; });
+
 						let href = persistence.getDownloadHref({ products: [], stock: stock, offers: []});
 						Utils.getById('backupStatus').innerHTML = '';
 						let date = new Date();
@@ -132,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function()
 				persistence.getAllIncremental( 'links',{ '>=': 0 },'id')
 				.then((links)=>
 				{
+					links.forEach((i)=>{ delete i.id; });
 
 					let href = persistence.getDownloadHref({ products: [], stock: [], offers: [], links: links });
 					Utils.getById('backupStatus').innerHTML = '';
@@ -173,21 +176,42 @@ document.addEventListener('DOMContentLoaded', function()
 
 				console.log('Try to save',obj.stock.length);
 
-				return persistence.saveProductLists( obj.products ).then(()=>
+				Promise.resolve(()=>
 				{
-					return persistence.addStock( obj.stock );
+
 				})
 				.then(()=>
 				{
-					return persistence.addOffers( obj.offers );
+
+					if( 'products' in obj.products )
+						return persistence.saveProductLists( obj.products );
+
+					return Promise.resolve(1);
 				})
 				.then(()=>
 				{
-					return persistence.addUrls( obj.links );
+					if( 'stock' in obj )
+						return persistence.addStock( obj.stock );
+
+					return Promise.resolve( 1 );
+				})
+				.then(()=>
+				{
+					if( 'offers' in obj )
+						return persistence.addOffers( obj.offers );
+
+					return Promise.resolve( 1 );
+				})
+				.then(()=>
+				{
+					if( 'links' in obj )
+						return persistence.addUrls( obj.links );
+
+					return Promise.resolve( 1 );
 				})
 				.then((result)=>
 				{
-					console.log('It Finish',obj.stock.length);
+					console.log('It Finish');
 					return result;
 				})
 				.catch((e)=>

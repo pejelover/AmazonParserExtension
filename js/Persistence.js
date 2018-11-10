@@ -469,6 +469,9 @@ class Persistence
 						? product[key].replace(/\s+/g,' ').trim()
 						: product[ key ];
 
+					if( value && value.length > 3200 )
+						value = value.substring(0,3200 );
+
 					row.push( value );
 				}
 				else
@@ -1302,7 +1305,7 @@ class Persistence
 	getStockReportArray( stockArray, product_sellers_preferences )
 	{
 		let reportRows = [];
-		let allColumns	= { 'asin': 1, 'seller_id':1 ,'is_prime' : 1 };
+		let allColumns	= { 'asin': 1, 'seller_id':1 ,'is_prime' : 1, 'fullfilled_by':1 };
 
 		stockArray.forEach((stock)=>
 		{
