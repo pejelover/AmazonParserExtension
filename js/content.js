@@ -2,40 +2,6 @@
 (function(){
 
 
-var default_settings = {
-
-	id: 1
-	,parse_status	: false
-	,page_product: {
-		close_tab	: false
-		,add_to_cart : false
-		,close_if_stock_found: false
-		,goto_sellers_pages	: false
-		,timeout	: 0
-	}
-	,page_cart:
-	{
-		parse_stock	: false
-		,close_tab	: false
-	}
-	,page_previous_cart:
-	{
-		close_tab	: false
-		,action		: 'do_nothing'
-	}
-	,page_sellers:
-	{
-		add_first	: false
-		,add_amazon : false
-		,add_first_prime: true
-		,close_tab	: false
-		,go_to_next	: false
-
-	}
-	,product_sellers_preferences: {
-	}
-};
-
 var settings	= default_settings;
 var parserSettings	= {};
 
@@ -80,7 +46,6 @@ function checkForRobots()
 
 function parseProductPage()
 {
-
 	if( 'timeout' in settings.page_product && settings.page_product.timeout && !isNaN( settings.page_product.timeout ) && settings.timeout > 0 )
 	{
 		setTimeout(()=>{ client.closeThisTab();}, settings.page_product.timeout*1000  );
@@ -113,18 +78,6 @@ function parseProductPage()
 
 		let seller_match = true;
 
-
-		if('product_sellers_preferences' in settings && settings.product_sellers_preferences )
-		{
-			if( p.asin in settings.product_sellers_preferences )
-			{
-				if( settings.product_sellers_preferences[ p.asin ].indexOf( seller_id ) === -1 )
-				{
-					seller_match = false;
-				}
-			}
-		}
-
 		let isMerchantProduct  	= false;
 		let merchantId			= null;
 
@@ -134,84 +87,104 @@ function parseProductPage()
 		{
 			isMerchantProduct = true;
 			merchantId	= params.get('m');
-		}
 
-
-		if( p.stock.length && ( p.stock[0].qty === 'Currently unavailable.' || p.stock[0].qty === 0 ) )
-		{
-			if( !isMerchantProduct )
-			{
-				seller_match = true;
-
-				if( p.asin in settings.product_sellers_preferences )
-					p.stock[0].seller_id = settings.product_sellers_preferences[ p.asin ][ 0 ];
-			}
-			else
-			{
+			if( p.stock.length )
 				p.stock[0].seller_id = merchantId;
-			}
 		}
 
 		if( p.stock.length )
 			client.executeOnBackground('StockFound',p.stock );
 
-		if( p.stock.length && settings.page_product.close_if_stock_found && seller_match)
-		{
-			client.closeThisTab();
-			return;
-		}
-		else if( settings.page_product.add_to_cart )
-		{
-			if( !parser.productPage.addToCart() )
-			{
-				let func= ()=> {
-					console.log('Trying another');
-					return parser.productPage.followPageProductOffers();
-				};
 
-				PromiseUtils.tryNTimes( func, 500, 20 ).catch((e)=>
+		new Promise((resolve,reject)=>
+		{
+			if( settings.page_product.add_to_cart )
+			{
+				PromiseUtils.tryNTimes(()=>
 				{
-					console.log( e );
-					//document.body.setAttribute("style","background-color:red");
+					return parser.productPage.addToCart();
+				},1500, 3 )
+				.then(()=>
+				{
+					if( settings.page_previous_cart.action === 'close_tab' )
+					{
+						PromiseUtils.resolveAfter( 1, 4000 ).then(()=>
+						{
+							client.closeThisTab();
+						});
+					}
+					reject('Product added');
+				})
+				.catch(()=>
+				{
+					resolve('Add to cart not found');
 				});
 			}
-			else if( settings.page_previous_cart.action === 'close_tab' )
+			else
 			{
-				PromiseUtils.resolveAfter( 1, 7000 ).then(()=>
+				resolve('No add options in settings');
+			}
+		})
+		.then((result)=>
+		{
+			if( p.stock.length && settings.page_product.close_if_stock_found )
+			{
+				if( p.asin in settings.product_sellers_preferences )
+				{
+					if( settings.product_sellers_preferences[ p.asin ].indexOf( p.stock[0].seller_id ) !== -1 )
+					{
+						client.closeThisTab();
+						return Promise.reject('Closing tab');
+					}
+					return Promise.resolve('No stock found for seller');
+				}
+				else
 				{
 					client.closeThisTab();
-				});
+					return Promise.reject('Closing tab');
+				}
 			}
 
-			return;
-		}
-		else if( settings.page_product.goto_sellers_pages )
+			return Promise.resolve('No stock found for seller');
+		})
+		.then((result)=>
 		{
-
-			client.closeThisTab();
-			//if( isMerchantProduct )
-			//{
-			//	window.location.href = window.location.href.replace('m='+merchantId,'');
-			//	return;
-			//}
-			//let func= ()=> {
-			//	console.log('Trying another');
-			//	return parser.productPage.followPageProductOffers();
-			//};
-
-			//PromiseUtils.tryNTimes( func, 500, 10 ).catch((e)=>
-			//{
-			//	parser.productPage.followAlternateProductOffers();
-			//	console.log( e );
-			//	//document.body.setAttribute("style","background-color:red");
-			//});
-			//return;
-		}
-		else if( settings.page_product.close_tab )
+			if( settings.page_product.goto_sellers_pages )
+			{
+				return new Promise((resolve,reject)=>
+				{
+					return PromiseUtils.tryNTimes(()=>
+					{
+						return parser.productPage.followPageProductOffers();
+					},1000,3)
+					.then(()=>
+					{
+						reject('Goint to page products');
+					})
+					.catch(()=>
+					{
+						resolve('Fail to add pageProducts');
+					});
+				});
+			}
+			else
+			{
+				Promise.resolve('No go to sellers page set');
+			}
+		})
+		.then(()=>
 		{
-			client.closeThisTab();
-			return;
-		}
+			//Last Option
+			if( settings.page_product.close_tab )
+			{
+				client.closeThisTab();
+				return Promise.reject('Close tab(settings)');
+			}
+		})
+		.catch((result)=>
+		{
+			console.log('Last options was', result );
+		});
 	});
 }
 
@@ -465,14 +438,13 @@ function parseVendorsPage()
 
 		//client.executeOnBackground("ProductsFound", [p] );
 
-		return PromiseUtils.resolveAfter( 1, 2000 )
+		Promise.resolve()
 		.then(()=>
 		{
-			let addedToCart = false;
-
-			if( p.asin in settings.product_sellers_preferences )
+			//Add based on sellers preferences
+			if( settings.product_sellers_preferences.add_by_seller_preferences && p.asin in settings.product_sellers_preferences )
 			{
-				addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
+				let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
 				{
 					let search = seller_id;
 
@@ -481,64 +453,70 @@ function parseVendorsPage()
 
 					return parser.productSellersPage.addToCartBySellerId( search );
 				});
+
+				return addedToCart ? Promise.reject('Added by Preferences') : Promise.resolve('No seller found to add');
 			}
-
-
-			if( addedToCart )
-				return;
-
-			if( settings.product_sellers_preferences[ p.asin ] && parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
-			{
-				PromiseUtils.resolveAfter( 1000, 1 )
-				.then(()=>
-				{
-					parser.productSellersPage.goToNextPage();
-				});
-				return;
-			}
-
+		})
+		.then(()=>
+		{
+			//Add amazon seller if is present
 			if( settings.page_sellers.add_amazon && parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
 			{
-				return;
+				return Promise.reject('Added amazon');
 			}
-
-
-
-			if( settings.page_sellers.add_first_prime &&  parser.productSellersPage.addToCartFirstPrime() )
+			return Promise.resolve('No amazon added');
+		})
+		.then((result)=>
+		{
+			//Add first prime
+			if( settings.page_sellers.add_first_prime )
 			{
-				return;
+				if( parser.productSellersPage.addToCartFirstPrime() )
+					return Promise.reject('Added first prime');
 			}
-
-
-			if( parser.productSellersPage.hasNextPage() && settings.page_sellers.go_to_next )
+			return Promise.resolve('No first prime');
+		})
+		.then(()=>
+		{
+			if( settings.page_sellers.add_if_only_one )
+			{
+				if( p.offers.length === 1 && !parser.productSellersPage.hasNextPage() && !parser.productSellersPage.hasPrevPage() )
+				{
+					if( parser.productSellersPage.addToCartFirstSeller() )
+					{
+						Promise.reject('Added First Seller');
+					}
+				}
+			}
+			return Promise.resolve('No add if only one');
+		})
+		.then(()=>
+		{
+			if( settings.page_sellers.go_to_next )
 			{
 				PromiseUtils.resolveAfter( 1000, 1 )
 				.then(()=>
 				{
-					parser.productSellersPage.goToNextPage();
+					return parser.productSellersPage.goToNextPage()
+						? Promise.reject('Goin to next page')
+						: Promise.resolve('No next page found');
 				});
-				return;
 			}
 
-			//if( settings.page_sellers.add_first
-			//	&& parser.productSellersPage.isFirstPage()
-			//	&& parser.productSellersPage.addToCartFirstSeller() )
-			//{
-			//	return;
-			//}
-
-
-			if( settings.page_sellers.add_if_only_one )
-			{
-
-				//return;
-			}
-
+			return Promise.resolve('No Next Page Found');
+		})
+		.then(()=>
+		{
 			if( settings.page_sellers.close_tab )
 			{
 				client.closeThisTab();
-				return;
+				return Promise.reject('Close option reached');
 			}
+			return Promise.reject('No More option found');
+		})
+		.catch((result)=>
+		{
+			console.log('Result was ', result);
 		});
 	})
 	.catch((error)=>
