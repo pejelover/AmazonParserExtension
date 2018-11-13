@@ -6,7 +6,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 18
+			,version	: 20
 			,stores		:{
 				products:
 				{
@@ -62,6 +62,11 @@ class Persistence
 						,{indexName: 'type', keyPath: 'type', objectParameters:{ uniq: false, multiEntry: true } }
 					]
 				}
+				,urls:
+				{
+					keyPath: 'asin'
+					,autoincrement: false
+				}
 				,settings:
 				{
 					keyPath: 'id'
@@ -86,7 +91,31 @@ class Persistence
 
 	addUrls( urls )
 	{
-		return this.database.addItems('links', urls );
+
+		let parser = new AmazonParser({});
+		let toAddKeys = [];
+
+		urls.forEach((url)=>
+		{
+			let asin = parser.getAsinFromUrl( url.url );
+			if( asin in toAddKeys )
+				return;
+
+			let friendlyCeo = parser.getCeoFriendlyLink( url.url );
+
+			if( !( asin && friendlyCeo ) )
+			{
+				return;
+			}
+			toAddKeys[ asin ] = { asin: asin, friendly_ceo: friendlyCeo.substring(1), time: parser.productUtils.getTime() };
+		});
+
+		let toAdd = Object.values( toAddKeys );
+
+		return this.database.putItems('urls', toAdd ).then(()=>
+		{
+			return this.database.putItems('links',urls );
+		});
 	}
 
 	init()
@@ -96,6 +125,63 @@ class Persistence
 		//{
 		//	return this.deleteBadValues();
 		//});
+	}
+
+	getUrlsByAsinReport( asinDictionary )
+	{
+		let asins = Object.keys( asinDictionary );
+
+		return this.database.getByKey('urls',asins ).then((urlFounds)=>
+		{
+			let dbDictionary = {};
+
+			urlFounds.forEach((i)=>
+			{
+				if( !(i.asin in dbDictionary) )
+				{
+					dbDictionary[ i.asin ] = i;
+				}
+			});
+
+			let result = [];
+			let prefix  = 'https://www.amazon.com';
+
+			result.push(['asin','seller id','url','time']);
+
+			asins.forEach((asin)=>
+			{
+				if( asin in dbDictionary )
+				{
+					asinDictionary[ asin ].forEach((i)=>
+					{
+						let m = i === 'ATVPDKIKX0DER' ? '' : '/?m='+i;
+
+						result.push([
+							asin
+							,i
+							,prefix+'/'+dbDictionary[ asin ].friendly_ceo+'/dp/'+asin+m
+							,dbDictionary[ asin ].time
+						]);
+					});
+				}
+				else
+				{
+					asinDictionary.forEach((i)=>
+					{
+						let m = i === 'ATVPDKIKX0DER' ? '/?m='+i : '';
+
+						result.push([
+							asin
+							,i
+							,prefix+'/dp/'+asin+m
+							,''
+						]);
+					});
+				}
+			});
+
+			return Promise.resolve( result );
+		});
 	}
 
 	deleteBadValues()
@@ -370,7 +456,7 @@ class Persistence
 				return this.database.getAll(storeName, newOptions ).then((all)=>
 				{
 					if( all.length === 0 )
-						return promise.resolve( 1 );
+						return Promise.resolve( 1 );
 
 					newOptions[ '>=' ] = all[ all.length-1 ][ indexName ];
 					console.log('Start', newOptions[ '>='] );

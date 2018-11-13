@@ -7,7 +7,7 @@
 		<script src="js/Promise-Utils/PromiseUtils.js"></script>
 		<script src="js/Diabetes/Utils.js"></script>
 		<script src="js/extension-framework/Client.js"></script>
-		<script src="js/popup.js"></script>
+		<script src="js/pageListReports.js"></script>
 		<script src="js/db-finger/DatabaseStore.js"></script>
 		<script src="js/AmazonParser/AmazonParser.js"></script>
 
@@ -22,7 +22,16 @@
 		<script src="js/Persistence.js"></script>
 
 		<style>
-			#main_container
+			#pageListReports label
+			{
+				display	: block;
+			}
+
+			#pageListReports textarea
+			{
+				width	: 100%;
+			}
+			#pageListReports
 			{
 				min-width: 400px;
 					padding: 15px;
@@ -30,7 +39,7 @@
 		</style>
 	</head>
 	<body>
-		<div id="main_container">
+		<div id="pageListReports">
 			<ul class="nav">
 				<li class="nav-item">
 					<a class="nav-link active" href="popup.html">Reports</a>
@@ -46,31 +55,15 @@
 				</li>
 			</ul>
 
-			<div class="input-group">
-				<select class="custom-select" id="inputGroupSelect04" aria-label="Select Filter type">
-					<option value="">No Filter</option>
-					<option value="search">Search</option>
-					<option value="producer">Producer</option>
-					<option value="Seller">Seller</option>
-				</select>
-			</div>
-			<div class="input-group">
-				<div class="input-group-append">
-					<input type="date" class="form-control" placeholder="date1" name="date1" id="date1">
-				</div>
-
-				<div class="input-group-append">
-					<input type="date" class="form-control" placeholder="date2" name="date2" id="date2">
-				</div>
+			<div class="">
+				<label for="asinList">Asin:Seller Id</label>
+				<textarea id="asinList"></textarea>
 			</div>
 
 			<div class="input-group">
 				<select class="custom-select" id="report-type" aria-label="Select report type to download">
-					<option value="historic_stock" selected>Historic Stock</option>
-					<option value="preferences_historic_stock" >Seller Preferences Historic Stock</option>
-					<option value="Basic Info">Basic Info</option>
-					<option value="products_without_stock">Products without a registered stock</option>
-					<option value="historic_price">Historic Price</option>
+					<option value="links" selected>Links</option>
+					<option value="todayRemainingLinks" >Today Remaining List</option>
 				</select>
 				<div class="input-group-append">
 					<button id="downloadButton" class="btn btn-outline-secondary" type="button">Download</button>

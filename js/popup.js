@@ -21,16 +21,15 @@ document.addEventListener('DOMContentLoaded', function()
 		//ext.executeOnBackground('RegisterWindow', { window_id : w.id	});
 	});
 
-	document.getElementById('parseAgain').addEventListener('click',(evt)=>
-	{
-		client.executeOnClients('ParseAgain',{});
-	});
+	//document.getElementById('parseAgain').addEventListener('click',(evt)=>
+	//{
+	//	client.executeOnClients('ParseAgain',{});
+	//});
 
-	document.getElementById('extractLinks').addEventListener('click',(evt)=>
-	{
-		client.executeOnClients('ExtractAllLinks',{});
-	});
-
+	//document.getElementById('extractLinks').addEventListener('click',(evt)=>
+	//{
+	//	client.executeOnClients('ExtractAllLinks',{});
+	//});
 
 	document.getElementById('downloadButton').addEventListener('click',(evt)=>
 	{
