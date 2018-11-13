@@ -5,6 +5,7 @@ java -jar /home/pejelover/bin/closure-compiler-v20180805.jar  \
 --strict_mode_input \
 --externs js/chrome_extensions.js \
 --externs js/chrome.js \
+dist/js/defaultSettings.js \
 dist/js/Promise-Utils/PromiseUtils.js \
 dist/js/AmazonParser/ProductUtils.js \
 dist/js/AmazonParser/ProductPage.js \
@@ -24,6 +25,7 @@ java -jar /home/pejelover/bin/closure-compiler-v20180805.jar \
 --js_output_file a.js \
 --externs js/chrome.js \
 --externs js/chrome_extensions.js \
+dist/js/defaultSettings.js \
 dist/js/Promise-Utils/PromiseUtils.js \
 dist/js/extension-framework/Server.js \
 dist/js/db-finger/DatabaseStore.js \
@@ -34,7 +36,6 @@ dist/js/AmazonParser/Prev2Cart.js \
 dist/js/AmazonParser/ProductSellersPage.js \
 dist/js/AmazonParser/AmazonParser.js \
 dist/js/AmazonParser/MerchantProducts.js \
-dist/js/defaultSettings.js \
 dist/js/Persistence.js \
 dist/js/background.js
 
