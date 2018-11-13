@@ -45,17 +45,13 @@
 					<input class="form-control" type="text" placeholder="Default input">
 				</div>
 
-				<div>
-					<label>Go To Next Page if not found</label>
-					<input type="checkbox"  name="go_to_next" value="1" id="go_to_next">
-				</div>
-
 				<div class="form-check">
-					<input class="form-check-input" type="checkbox" name="add_first" value="1" id="add_first">
-					<label class="form-check-label" for="add_first">
-						Add first
+					<input class="form-check-input" type="checkbox" name="add_amazon"  value="1" id="add_amazon" >
+					<label class="form-check-label" for="add_amazon">
+						Add based on sellers preference
 					</label>
 				</div>
+
 
 				<div class="form-check">
 					<input class="form-check-input" type="checkbox" name="add_amazon"  value="1" id="add_amazon" >
@@ -72,9 +68,21 @@
 				</div>
 
 				<div class="form-check">
+					<input type="checkbox"  name="go_to_next" value="1" id="go_to_next">
+					<label>Go To Next Page if not found</label>
+				</div>
+
+				<div class="form-check">
 					<input class="form-check-input" type="checkbox" name="add_if_only_one"  value="1" id="add_if_only_one">
 					<label class="form-check-label" for="add_if_only_one">
 						Add if there's only one
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="add_first" value="1" id="add_first">
+					<label class="form-check-label" for="add_first">
+						Add first
 					</label>
 				</div>
 
@@ -84,10 +92,6 @@
 						Close Tab
 					</label>
 				</div>
-
-
-				<label for="product_sellers_config">
-				<textarea id="product_sellers_config"></textarea>
 
 				<div style="padding-top: 20px">
 					<button id="saveSettingsButton" class="btn btn-primary btn-sm" type="button">Save</button>
