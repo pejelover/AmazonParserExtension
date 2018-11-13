@@ -22,6 +22,7 @@ var default_settings = {
 	,page_sellers:
 	{
 		add_first	: true
+		,add_by_seller_preferences : true
 		,add_amazon : true
 		,add_first_prime: true
 		,close_tab	: true
@@ -31,7 +32,4 @@ var default_settings = {
 	,product_sellers_preferences: {
 	}
 };
-
-
-
 
