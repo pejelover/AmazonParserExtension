@@ -1109,7 +1109,7 @@ class Persistence
 		let toDelete = [];
 		let last_id = null;
 
-		let a  = new AmazonParser();
+		let a  = new AmazonParser({});
 
 		return this.database.getAll('links',{ '>': start, 'count': count })
 		.then((linksList)=>
@@ -1198,7 +1198,7 @@ class Persistence
 
 	optimizeAllUrls()
 	{
-		return this.database.count( 'links' ).then((linksCount)=>
+		return this.database.count( 'links', {} ).then((linksCount)=>
 		{
 			let start 	= 1;
 			let count	= linksCount/100000;
@@ -1223,7 +1223,7 @@ class Persistence
 
 	optimizeAllStock()
 	{
-		return this.database.count( 'stock' ).then((stockCount)=>
+		return this.database.count( 'stock', {} ).then((stockCount)=>
 		{
 			let start 	= 1;
 
@@ -1360,7 +1360,7 @@ class Persistence
 	{
 		return this.getAllIncremental( 'links',{ '>=': 0 },'id').then((links)=>
 		{
-			let a = new AmazonParser();
+			let a = new AmazonParser({});
 			let report = [['asin','seller_id','seller name', 'url', 'time']];
 
 			links.forEach((link)=>
