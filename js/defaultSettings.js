@@ -5,6 +5,7 @@ var default_settings = {
 	,page_product: {
 		close_tab	: false
 		,add_to_cart : false
+		,add_by_seller_preferences: true
 		,close_if_stock_found: false
 		,goto_sellers_pages	: false
 		,timeout			: 0

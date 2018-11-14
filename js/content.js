@@ -92,40 +92,12 @@ function parseProductPage()
 				p.stock[0].seller_id = merchantId;
 		}
 
+
 		if( p.stock.length )
 			client.executeOnBackground('StockFound',p.stock );
 
-
-		new Promise((resolve,reject)=>
-		{
-			if( settings.page_product.add_to_cart )
-			{
-				PromiseUtils.tryNTimes(()=>
-				{
-					return parser.productPage.addToCart();
-				},1500, 3 )
-				.then(()=>
-				{
-					if( settings.page_previous_cart.action === 'close_tab' )
-					{
-						PromiseUtils.resolveAfter( 1, 4000 ).then(()=>
-						{
-							client.closeThisTab();
-						});
-					}
-					reject('Product added');
-				})
-				.catch(()=>
-				{
-					resolve('Add to cart not found');
-				});
-			}
-			else
-			{
-				resolve('No add options in settings');
-			}
-		})
-		.then((result)=>
+		Promise.resolve(1)
+		.then(()=>
 		{
 			if( p.stock.length && settings.page_product.close_if_stock_found )
 			{
@@ -144,8 +116,76 @@ function parseProductPage()
 					return Promise.reject('Closing tab');
 				}
 			}
-
 			return Promise.resolve('No stock found for seller');
+		})
+		.then(()=>
+		{
+			//Add if add by sellers preference
+			return new Promise((resolve,reject)=>
+			{
+				if( settings.page_product.add_by_seller_preferences )
+				{
+					if(
+						p.offers.length
+						&& p.asin in settings.product_sellers_preferences
+						&& settings.product_sellers_preferences[ p.asin ].indexOf(  p.offers[0].seller_id  ) !== -1 )
+					{
+						PromiseUtils.tryNTimes(()=>
+						{
+							return parser.productPage.addToCart();
+						},1500, 3 )
+						.then(()=>
+						{
+							if( settings.page_previous_cart.action === 'close_tab' )
+							{
+								PromiseUtils.resolveAfter( 1, 4000 ).then(()=>
+								{
+									client.closeThisTab();
+								});
+							}
+							reject('Product added');
+						})
+						.catch(()=>
+						{
+							resolve('Add to cart not found');
+						});
+					}
+				}
+				resolve('No added to cart by sellers preference');
+			});
+		})
+		.then(()=>
+		{
+			return new Promise((resolve,reject)=>
+			{
+				//Add to cart enable
+				if( settings.page_product.add_to_cart )
+				{
+					PromiseUtils.tryNTimes(()=>
+					{
+						return parser.productPage.addToCart();
+					},1500, 3 )
+					.then(()=>
+					{
+						if( settings.page_previous_cart.action === 'close_tab' )
+						{
+							PromiseUtils.resolveAfter( 1, 4000 ).then(()=>
+							{
+								client.closeThisTab();
+							});
+						}
+						reject('Product added');
+					})
+					.catch(()=>
+					{
+						resolve('Add to cart not found');
+					});
+				}
+				else
+				{
+					resolve('No add options in settings');
+				}
+			});
 		})
 		.then((result)=>
 		{

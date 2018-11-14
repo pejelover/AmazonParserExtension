@@ -43,7 +43,6 @@ ext.addListener('AddUrls',(url,request,tab_id,port)=>
 	}
 });
 
-
 ext.addListener('PageNotFound',(url,request,tab_id )=>
 {
 	let date = new Date();
@@ -87,7 +86,6 @@ ext.addListener('OffersFound',(url,request,tab_id, port)=>
 		console.log( e );
 	}
 });
-
 
 
 ext.addListener('StockFound',(url,request,tab_id,port)=>
@@ -136,9 +134,15 @@ ext.addListener('ProductsFound',(url,request,tab_id, port )=>
 chrome.commands.onCommand.addListener(function(command)
 {
 	//console.log('Comman received',command );
-
 	if( command === "get_all_links" )
 	{
-		ext.executeOnClients('ExtractAllLinks',{});
+		chrome.tabs.query({
+			currentWindow: true
+			, active : true
+		},
+	  	function(tabArray)
+		{
+			ext.executeOnClients('ExtractAllLinks',{});
+		});
 	}
 });

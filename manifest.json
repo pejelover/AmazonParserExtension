@@ -5,25 +5,34 @@
 	,"version": "1.0"
 	,"background":
 	{
-	  "scripts":
-	  [
-		  "js/Promise-Utils/PromiseUtils.js"
-		  ,"js/extension-framework/Server.js"
-		  ,"js/db-finger/DatabaseStore.js"
-		  ,"js/AmazonParser/ProductUtils.js"
-		  ,"js/defaultSettings.js"
-		  ,"js/Persistence.js"
-		  ,"js/background.js"
-	  ]
-	  ,"persistent"	:false
+		"scripts":
+		[
+			"js/Promise-Utils/PromiseUtils.js"
+			,"js/extension-framework/Server.js"
+			,"js/db-finger/DatabaseStore.js"
+			,"js/AmazonParser/ProductUtils.js"
+
+			,"js/AmazonParser/ProductPage.js"
+			,"js/AmazonParser/CartPage.js"
+			,"js/AmazonParser/Prev2Cart.js"
+			,"js/AmazonParser/ProductSellersPage.js"
+			,"js/AmazonParser/AmazonParser.js"
+			,"js/AmazonParser/MerchantProducts.js"
+
+			,"js/defaultSettings.js"
+			,"js/Persistence.js"
+			,"js/background.js"
+		]
+		,"persistent"	:false
 	}
 	,"content_scripts":
 	[
-	  	{
+			{
 			"matches":["<all_urls>"]
 			,"js":
 			[
-				"js/Promise-Utils/PromiseUtils.js"
+					"js/defaultSettings.js"
+				,"js/Promise-Utils/PromiseUtils.js"
 				,"js/AmazonParser/ProductUtils.js"
 				,"js/AmazonParser/ProductPage.js"
 				,"js/AmazonParser/CartPage.js"
@@ -39,12 +48,12 @@
 	,"browser_action":{ "default_icon": "images/icon.png" ,"default_popup": "popup.html" }
 	,"permissions": [ "tabs","<all_urls>","unlimitedStorage"]
 	,"commands":
-  	{
-  	    "get_all_links":
-  	    {
-  	        "description": "Get All Links of the page",
-  	        "suggested_key": { "default": "Ctrl+Shift+L" }
-  	    }
-  	}
+		{
+			"get_all_links":
+			{
+				"description": "Get All Links of the page",
+				"suggested_key": { "default": "Ctrl+Shift+L" }
+			}
+		}
 
 }
