@@ -166,9 +166,9 @@ class Persistence
 				}
 				else
 				{
-					asinDictionary.forEach((i)=>
+					asinDictionary[asin].forEach((i)=>
 					{
-						let m = i === 'ATVPDKIKX0DER' ? '/?m='+i : '';
+						let m = i === 'ATVPDKIKX0DER' ? '':'/?m='+i;
 
 						result.push([
 							asin
@@ -204,15 +204,39 @@ class Persistence
 		//	return this.database.deleteByKeyIds('stock',toRemove );
 		//})
 
-		this.database.removeAll('offers',{ '<=':696057 } )
-		.then((deleted)=>
+
+		this.database.getAll('products',{})
+		.then(( products )=>
 		{
-			console.log('Deleted', deleted );
-		})
-		.catch((error)=>
-		{
-			console.log('An error occours', error );
+			let parser = new AmazonParser();
+
+			let newUrls = products.reduce((p,c)=>
+			{
+				let asin = parser.getAsinFromUrl( c.url );
+
+				let friendlyCeo = parser.getCeoFriendlyLink( c.url );
+
+				if( !( asin && friendlyCeo ) )
+				{
+					return p;
+				}
+
+				p.push({ asin: asin, friendly_ceo: friendlyCeo.substring(1), time: parser.productUtils.getTime() });
+				return p;
+			},[]);
+
+			this.database.addItems('urls', newUrls, true );
 		});
+
+		//this.database.removeAll('offers',{ '<=':696057 } )
+		//.then((deleted)=>
+		//{
+		//	console.log('Deleted', deleted );
+		//})
+		//.catch((error)=>
+		//{
+		//	console.log('An error occours', error );
+		//});
 	}
 
 	updateUrl( url )
