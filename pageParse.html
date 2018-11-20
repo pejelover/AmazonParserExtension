@@ -4,9 +4,10 @@
 		 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<link href="css/bootstrap.min.css" rel="stylesheet">
 		<script src="js/defaultSettings.js"></script>
-		<script src="js/popup.js"></script>
-		<script src="js/Diabetes/Utils.js"></script>
 		<script src="js/Promise-Utils/PromiseUtils.js"></script>
+		<script src="js/Diabetes/Utils.js"></script>
+		<script src="js/extension-framework/Client.js"></script>
+		<script src="js/pageParser.js"></script>
 		<script src="js/db-finger/DatabaseStore.js"></script>
 		<script src="js/AmazonParser/AmazonParser.js"></script>
 
@@ -19,13 +20,12 @@
 		<script src="js/AmazonParser/Prev2Cart.js"></script>
 
 		<script src="js/Persistence.js"></script>
-		<script src="js/status.js"></script>
 
 		<style>
 			#main_container
 			{
 				min-width: 400px;
-					padding: 30px;
+					padding: 15px;
 			}
 		</style>
 	</head>
@@ -33,14 +33,23 @@
 		<div id="main_container">
 			<ul class="nav">
 				<li class="nav-item">
-					<a class="nav-link active" href="#">Main</a>
+					<a class="nav-link active" href="popup.html">Reports</a>
+				</li>
+				<li>
+					<a class="nav-link active" href="pageListReports.html">List</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="pageParse.html">Parse</a>
 				</li>
 				<li class="nav-item">
 					<a class="nav-link" href="popupSettings.html">Settings</a>
 				</li>
 			</ul>
-		</div>
-		<div>
+
+			<div><a href="#" id="pageParserAgain">ParseAgain</a></div>
+			<div><a href="#" id="pageParserOptimizeStock">Optimize Stock</a></div>
+			<div><a href="#" id="pageParserOptimizeUrls">Optimize Urls</a></div>
+			<div><a href="#" id="pageParserExtractAllLinks">Extract All Urls</a></div>
 		</div>
 	</body>
 </html>

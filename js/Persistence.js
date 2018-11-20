@@ -241,7 +241,7 @@ class Persistence
 
 	updateUrl( url )
 	{
-		return this.database.addItems( 'links', [url] );
+		return this.database.addItems( 'links', [url], true );
 	}
 
 	addNotFound( notFoundObj )
@@ -288,13 +288,13 @@ class Persistence
 			return prev;
 		},[]);
 
-		return this.database.addItems( 'stock', filtered );
+		return this.database.addItems( 'stock', filtered, true );
 	}
 
 	addOffers( offersArray )
 	{
 		let filtered = offersArray.filter( offer => 'price' in offer && 'time' in offer );
-		return this.database.addItems( 'offers', filtered );
+		return this.database.addItems( 'offers', filtered , true );
 	}
 
 	getOffers(date1,data2Keys)
@@ -327,7 +327,7 @@ class Persistence
 		.then(( oldProduct )=>
 		{
 			if( oldProduct )
-				this.productUtils.mergeProducts( oldProduct, product );
+				this.productUtils.mergeProducts( oldProduct, product, true );
 
 			try
 			{
@@ -1236,6 +1236,7 @@ class Persistence
 			return PromiseUtils.runSequential(a,()=>
 			{
 				console.log('Optimizing start', start );
+
 				return this.optimizeLinks(start,100000).then((last_id)=>
 				{
 					start = last_id;
@@ -1372,13 +1373,6 @@ class Persistence
 
 	//	return finalArray.reduce( (prev, item ) => {  return prev + i.join(",")+"\n"; }, '' );
 	//}
-
-
-	optimizeUrls()
-	{
-
-
-	}
 
 	getUrlsReport()
 	{

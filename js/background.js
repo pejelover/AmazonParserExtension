@@ -118,6 +118,8 @@ ext.addListener('StockFound',(url,request,tab_id,port)=>
 	}
 });
 
+ext.addListener('ParseAgainServer')
+
 ext.addListener('OpenBackup',()=>{
 	chrome.tabs.create({url: chrome.extension.getURL('backup.html')});
 });
@@ -136,6 +138,7 @@ chrome.commands.onCommand.addListener(function(command)
 	//console.log('Comman received',command );
 	if( command === "get_all_links" )
 	{
+
 		chrome.tabs.query({
 			currentWindow: true
 			, active : true
@@ -146,3 +149,5 @@ chrome.commands.onCommand.addListener(function(command)
 		});
 	}
 });
+
+
