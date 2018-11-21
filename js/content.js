@@ -53,6 +53,19 @@ function parseProductPage()
 
 	checkForRobots().then(()=>
 	{
+		let colorVariations	= parser.productPage.parseVariationColorUrls();
+		let sizeVariations = parser.productPage.parseVariationSizeUrls();
+		let paternVariations = parser.productPage.parseVariationUrlsFromPattern();
+
+		let allUrls = colorVariations.concat( sizeVariations, paternVariations ).map( p =>
+		{
+			return { url: p, type: parser.getPageType( p ), time: parser.productUtils.getTime() };
+		});
+
+
+		if( allUrls.length )
+			client.executeOnBackground('AddUrls', allUrls );
+
 		let p = parser.productPage.getProduct();
 
 		if( p )
@@ -75,6 +88,8 @@ function parseProductPage()
 		{
 			seller_id = p.offers[0].seller_id;
 		}
+
+
 
 		let seller_match = true;
 

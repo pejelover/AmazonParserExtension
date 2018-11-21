@@ -112,7 +112,7 @@ class Persistence
 
 		let toAdd = Object.values( toAddKeys );
 
-		return this.database.putItems('urls', toAdd ).then(()=>
+		return this.database.addItems('urls', toAdd, true ).then(()=>
 		{
 			return this.database.putItems('links',urls );
 		});
@@ -1127,6 +1127,98 @@ class Persistence
 		return finalArray.reduce( (prev, item ) => {  return prev + item.join("\t")+"\n"; }, '' );
 	}
 
+	optimizeLinksUrls( start,count, amazonParser )
+	{
+		let urlsToAdd = [];
+		let allAsins = {};
+		let f = 1;
+
+		return this.database.getAllKeys('urls',{}).then((keys)=>
+		{
+			keys.forEach((i)=>{ allAsins[ i ] = null; });
+		})
+		.then(()=>
+		{
+			return this.database.getAll('links',{ '>': start, 'count': count }).then((links)=>
+			{
+				let toAddKeys 	= [];
+				let toDelete	= [];
+
+				links.forEach((link)=>
+				{
+					let asin = amazonParser.getAsinFromUrl( link.url );
+
+					if( link.id >= 2837197 && link.id <= 2837288 )
+					{
+						console.log('FUUUUU');
+					}
+
+					if( !asin )
+					{
+						return;
+					}
+
+					if( asin in toAddKeys || asin in allAsins)
+					{
+						toDelete.push( link.id );
+						return;
+					}
+
+					let friendlyCeo = amazonParser.getCeoFriendlyLink( link.url );
+
+					if( ! friendlyCeo )
+					{
+						return;
+					}
+
+					toDelete.push( link.id );
+					toAddKeys[ asin ] = { asin: asin, friendly_ceo: friendlyCeo.substring(1), time: link.time };
+				});
+
+				let toAdd = Object.values( toAddKeys );
+
+				return this.database.addItems('urls', toAdd, true ).then(()=>
+				{
+					console.log('Removing', toDelete.length );
+
+					if( toDelete.length )
+						return this.database.deleteByKeyIds('links', toDelete );
+
+					return links.length ? Promise.resolve( links[ links.length - 1 ].id ) : Promise.resolve( 0 );
+				});
+			});
+		});
+	}
+
+	optimizeAllLinksUrls()
+	{
+		return this.database.count( 'links', {} ).then((linksCount)=>
+		{
+
+			let amazonParser  = new AmazonParser({});
+
+			let start 	= 1;
+			let count	= linksCount/100000;
+
+			if( count !== Math.floor( count ) )
+				count = Math.floor( count )+1;
+
+			let a = Array( count );
+			a.fill( 0 );
+
+			return PromiseUtils.runSequential(a,()=>
+			{
+				console.log('Optimizing start', start );
+
+				return this.optimizeLinksUrls(start,100000, amazonParser ).then((last_id)=>
+				{
+					start = last_id;
+					return Promise.resolve(true);
+				});
+			});
+		});
+	}
+
 	optimizeLinks(start, count)
 	{
 		let allKeys = {};
@@ -1379,7 +1471,7 @@ class Persistence
 		return this.getAllIncremental( 'links',{ '>=': 0 },'id').then((links)=>
 		{
 			let a = new AmazonParser({});
-			let report = [['asin','seller_id','seller name', 'url', 'time']];
+			let report = [['id','asin','seller_id','seller name', 'url', 'time']];
 
 			links.forEach((link)=>
 			{
@@ -1399,7 +1491,7 @@ class Persistence
 
 				let time =  'time' in link && link.time ? link.time : '';
 
-				report.push([asin, seller_id, seller_name, url, time ]);
+				report.push([link.id, asin, seller_id, seller_name, url, time ]);
 			});
 
 			return Promise.resolve( report );

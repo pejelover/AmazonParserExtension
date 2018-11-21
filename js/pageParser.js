@@ -17,13 +17,28 @@ document.addEventListener('DOMContentLoaded', function()
 	Utils.getById('pageParserOptimizeStock').addEventListener('click',(evt)=>
 	{
 		Utils.stopEvent( evt );
-		persistence.optimizeAllStock();
+		persistence.optimizeAllStock().then(()=>
+		{
+			console.log('End Optimization');
+		})
+		.catch((e)=>
+		{
+			console.log('Fails Stock Optimization', e );
+		});
 	});
 
 	Utils.getById('pageParserOptimizeUrls').addEventListener('click',(evt)=>
 	{
 		Utils.stopEvent( evt );
-		persistence.optimizeAllUrl();
+		persistence.optimizeAllLinksUrls()
+		.then((result)=>
+		{
+			console.log('End Optimization');
+		})
+		.catch((e)=>
+		{
+			console.log('Fails Urls Optimization', e );
+		});
 	});
 
 	Utils.getById('pageParserExtractAllLinks').addEventListener('click',(evt)=>

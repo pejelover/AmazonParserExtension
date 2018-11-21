@@ -25,7 +25,12 @@ document.addEventListener('DOMContentLoaded', function()
 					asinDictionary[ asin ] = [];
 				}
 
-				asinDictionary[ asin ].push( tokens[1].trim() );
+				let t1 = tokens[1].trim();
+
+				if( t1 && !asinDictionary[ asin ].some( i => i==t1 ) )
+				{
+					asinDictionary[ asin ].push( t1 );
+				}
 			});
 
 			persistence.getUrlsByAsinReport( asinDictionary ).then(( result )=>
