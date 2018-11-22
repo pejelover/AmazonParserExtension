@@ -58,8 +58,13 @@ document.addEventListener('DOMContentLoaded', function()
 				persistence.getProductList( date1String, date2String )
 				.then((products)=>
 				{
+
+					let date	= new Date();
+					var dateStr = date.toISOString().substring(0,19).replace(/\D/g,'');
+					let filename = 'Products_'+dateStr+'.csv';
+
 					let s = persistence.generateRawReport( products );
-					download('something.csv',s );
+					download( filename ,s );
 				})
 				.catch((e)=>
 				{
@@ -68,20 +73,8 @@ document.addEventListener('DOMContentLoaded', function()
 				});
 				break;
 			}
-			case 'products_without_stock':
+			case 'links':
 			{
-				//persistence.getProductList( date1, date2 ).then((products)=>
-				//{
-				//	//let s = persistence.generateProductsNoStock( products );
-				//	let s = persistence.generateRawReport( products );
-				//	download('something.csv',s);
-				//})
-				//.catch((e)=>
-				//{
-				//	console.log( e );
-				//	Utils.alert('An error occorred');
-				//});
-
 				let date1 = null;
 				let date2 = null;
 
@@ -98,10 +91,13 @@ document.addEventListener('DOMContentLoaded', function()
 					date2 = new Date( date2String );
 				}
 
-
 				persistence.getUrlsReport( date1, date2 )
 				.then((allUrls)=> {
-					let filename = 'Foooo.csv';
+					let date	= new Date();
+					var dateStr = date.toISOString().substring(0,19).replace(/\D/g,'');
+
+					let filename = 'Links_'+dateStr+'.csv';
+
 					let string = allUrls.reduce((p,c)=>{
 						return p+(c.join('\t') )+'\n';
 					},'');
@@ -117,7 +113,9 @@ document.addEventListener('DOMContentLoaded', function()
 					return persistence.getStockList( date1, date2 ).then(( stockArray )=>
 					{
 						let date = new Date();
-						let filename = 'Historic_stock_'+(date.toISOString().substring(0,10) )+'.csv';
+
+						var dateStr = date.toISOString().substring(0,19).replace(/\D/g,'');
+						let filename = 'Historic_stock_'+dateStr+'.csv';
 						let s = persistence.getStockReport2( stockArray, settings.product_sellers_preferences );
 						download( filename, s );
 					});
@@ -133,7 +131,9 @@ document.addEventListener('DOMContentLoaded', function()
 				persistence.getStockList( date1, date2 ).then((stockArray)=>
 				{
 					let date = new Date();
-					let filename = 'Historic_stock_'+(date.toISOString().substring(0,10) )+'.csv';
+					var dateStr = date.toISOString().substring(0,19).replace(/\D/g,'');
+
+					let filename = 'Historic_stock_'+( dateStr )+'.csv';
 					let s = persistence.getStockReport2( stockArray );
 					download( filename, s );
 				})

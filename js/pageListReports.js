@@ -39,12 +39,36 @@ document.addEventListener('DOMContentLoaded', function()
 						return p+(c.join('\t') )+'\n';
 				},'');
 
-				download('urlsByAsin.csv', string );
+				let date = new Date();
+				var dateStr = date.toISOString().substring(0,19).replace(/\D/g,'');
+				download('urlsByAsin_'+dateStr+'.csv', string );
 			});
 		}
 		else
 		{
+			let seller_id = Utils.getById('asinList').value.trim();
+			persistence.getAllAsinForSeller(seller_id ).then(( asins )=>
+			{
+				let asinDictionary = {};
 
+				asins.forEach((asin)=>
+				{
+					asinDictionary[ asin ] = [ seller_id ];
+				});
+
+				persistence.getUrlsByAsinReport( asinDictionary ).then(( result )=>
+				{
+					let string = result.reduce((p,c)=>{
+							return p+(c.join('\t') )+'\n';
+					},'');
+
+					var date = new Date();
+
+					var dateStr = date.toISOString().substring(0,19).replace(/\D/g,'');
+
+					download('urls_'+seller_id+'_'+dateStr+'.csv', string );
+				});
+			});
 		}
 	});
 

@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function()
 					Utils.getById('backupStatus').innerHTML = '';
 
 					let anchor = window.document.createElement('a');
-					anchor.setAttribute('download', 'PRODUCTS_backup_'+date.toISOString()+'.json');
+					anchor.setAttribute('download', 'PRODUCTS_backup_'+( date.toISOString() )+'.json');
 					anchor.setAttribute('href', href );
 					anchor.textContent = 'Backup_Products'+date.toISOString();
 					anchor.classList.add('button');

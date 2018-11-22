@@ -6,7 +6,7 @@ class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 20
+			,version	: 21
 			,stores		:{
 				products:
 				{
@@ -66,6 +66,10 @@ class Persistence
 				{
 					keyPath: 'asin'
 					,autoincrement: false
+					,indexes	:
+					[
+						{indexName: 'friendly_ceo', keyPath: 'friendly_ceo', objectParameters:{ uniq: false, multiEntry: false } }
+					]
 				}
 				,settings:
 				{
@@ -129,7 +133,7 @@ class Persistence
 
 	getUrlsByAsinReport( asinDictionary )
 	{
-		let asins = Object.keys( asinDictionary );
+		let asins = Object.keys( asinDictionary ).sort();
 
 		return this.database.getByKey('urls',asins ).then((urlFounds)=>
 		{
@@ -310,6 +314,58 @@ class Persistence
 	getOffersKeys(date1,data2Keys)
 	{
 		return this.database.getAllKeys('offers',{});
+	}
+
+	getAllAsinForSeller( seller_id )
+	{
+		let asins = {};
+		let indexObject = { index:'seller_id' ,'=':seller_id };
+
+		return this.database.getAll('stock', indexObject ).then((stocks)=>
+		{
+			stocks.forEach((i)=>
+			{
+				asins[ i.asin ] = true;
+			});
+			return this.database.getAll('offers', indexObject );
+		})
+		.then((offers)=>
+		{
+			offers.forEach((i)=>
+			{
+				if( 'asin' in i )
+					asins[ i.asin ] = true;
+			});
+
+			let values = Object.keys( asins ).sort();
+
+			return this.database.getByKey('urls',values );
+		})
+		.then((urls)=>
+		{
+			let urlDicts = {};
+
+			urls.forEach((i)=>
+			{
+				urlDicts[ i.friendly_ceo  ] = true;
+				asins[ i.asin ] = true;
+			});
+
+			let urlValues = Object.keys( urlDicts ).sort();
+
+			return this.database.getByKey( 'urls', urlValues, { index: 'friendly_ceo' });
+		})
+		.then((urls)=>
+		{
+			let urlDicts = {};
+
+			urls.forEach((i)=>
+			{
+				asins[ i.asin ] = true;
+			});
+
+			return Promise.resolve( Object.keys( asins ) );
+		});
 	}
 
 	getOffersCount(date1,data2Keys)
