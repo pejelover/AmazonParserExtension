@@ -496,9 +496,19 @@ function parseVendorsPage()
 		Promise.resolve()
 		.then(()=>
 		{
-			//Add based on sellers preferences
-			if( settings.product_sellers_preferences.add_by_seller_preferences && p.asin in settings.product_sellers_preferences )
+			//One day fullfilled by amazon
+			//page_sellers.add_by_seller_preferences_next_day = 'add_by_seller_preferences_next_day' in page_sellers;
+			//page_sellers.add_by_seller_preferences_amazon = 'add_by_seller_preferences_amazon' in page_sellers;
+			//page_sellers.add_by_seller_preferences_vendor = 'add_by_seller_preferences_vendor' in page_sellers;
+
+			if( settings.page_sellers.add_by_seller_preferences_next_day
+				&& settings.page_sellers.add_by_seller_preferences_amazon
+				&& p.asin in settings.product_sellers_preferences )
 			{
+				let is_one_day_shipping = true;
+				let fullfilled_by_vendor = false;
+				let fullfilled_by_amazon = true;
+
 				let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
 				{
 					let search = seller_id;
@@ -506,20 +516,78 @@ function parseVendorsPage()
 					if( search === 'ATVPDKIKX0DER' )
 						search = 'amazon.com';
 
-					return parser.productSellersPage.addToCartBySellerId( search );
+					return parser.productSellersPage.addToCartBySellerId( search, is_one_day_shipping, fullfilled_by_vendor, fullfilled_by_amazon );
 				});
 
-				return addedToCart ? Promise.reject('Added by Preferences') : Promise.resolve('No seller found to add');
+				return ! addedToCart ? Promise.resolve('No found no one day fullfilled by amazaon') : Promise.reject( 'Found no one day  && fullfilled by amazon');
 			}
+
+			return Promise.resolve('No, one Day and fullfilled by amazon options');
 		})
 		.then(()=>
 		{
-			//Add amazon seller if is present
-			if( settings.page_sellers.add_amazon && parser.productSellersPage.addToCartBySellerId( 'amazon.com' ) )
+			//No one day, fullfilled by amazon
+			if( settings.page_sellers.add_by_seller_preferences_no_next_day
+				&& settings.page_sellers.add_by_seller_preferences_amazon
+				&& p.asin in settings.product_sellers_preferences )
 			{
-				return Promise.reject('Added amazon');
+				let is_one_day_shipping = false;
+				let fullfilled_by_vendor = false;
+				let fullfilled_by_amazon = true;
+
+				let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
+				{
+					let search = seller_id;
+
+					if( search === 'ATVPDKIKX0DER' )
+						search = 'amazon.com';
+
+					return parser.productSellersPage.addToCartBySellerId( search, is_one_day_shipping, fullfilled_by_vendor, fullfilled_by_amazon );
+				});
+
+				return !addedToCart ? Promise.resolve('No found no one day shipping && fullfilled by amazaon') : Promise.reject( 'Found no one day && fullfilled by amazon');
 			}
-			return Promise.resolve('No amazon added');
+
+			return Promise.resolve('No found Seller && fullfilled by amazaon');
+		})
+		.then(()=>
+		{
+			//No one day, fullfilled by vendor
+			if( settings.page_sellers.add_by_seller_preferences_vendor && p.asin in settings.product_sellers_preferences )
+			{
+				let is_one_day_shipping = false;
+				let fullfilled_by_vendor = true;
+				let fullfilled_by_amazon = false;
+
+				let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
+				{
+					let search = seller_id;
+
+					if( search === 'ATVPDKIKX0DER' )
+						search = 'amazon.com';
+
+					return parser.productSellersPage.addToCartBySellerId( search, is_one_day_shipping, fullfilled_by_vendor, fullfilled_by_amazon );
+				});
+
+				return !addedToCart ? Promise.resolve('No found Seller && no fullfilled by vendor') : Promise.reject( 'Found seller && fullfilled by vendor');
+			}
+
+			return Promise.resolve('No found Seller && fullfilled by amazon');
+		})
+		.then(()=>
+		{
+			if( settings.page_sellers.go_to_next )
+			{
+				PromiseUtils.resolveAfter( 1000, 1 )
+				.then(()=>
+				{
+					return parser.productSellersPage.goToNextPage()
+						? Promise.reject('Goin to next page')
+						: Promise.resolve('No next page found');
+				});
+			}
+
+			return Promise.resolve('No Next Page Found');
 		})
 		.then((result)=>
 		{
@@ -544,21 +612,6 @@ function parseVendorsPage()
 				}
 			}
 			return Promise.resolve('No add if only one');
-		})
-		.then(()=>
-		{
-			if( settings.page_sellers.go_to_next )
-			{
-				PromiseUtils.resolveAfter( 1000, 1 )
-				.then(()=>
-				{
-					return parser.productSellersPage.goToNextPage()
-						? Promise.reject('Goin to next page')
-						: Promise.resolve('No next page found');
-				});
-			}
-
-			return Promise.resolve('No Next Page Found');
 		})
 		.then(()=>
 		{

@@ -5,7 +5,11 @@ var default_settings = {
 	,page_product: {
 		close_tab	: false
 		,add_to_cart : false
-		,add_by_seller_preferences: true
+
+		,add_by_seller_preferences_next_day : false
+		,add_by_seller_preferences_amazon : false
+		,add_by_seller_preferences_vendor : false
+
 		,close_if_stock_found: false
 		,goto_sellers_pages	: false
 		,timeout			: 0
@@ -23,7 +27,11 @@ var default_settings = {
 	,page_sellers:
 	{
 		add_first	: true
-		,add_by_seller_preferences : true
+
+		,add_by_seller_preferences_next_day : false
+		,add_by_seller_preferences_amazon : false
+		,add_by_seller_preferences_vendor : false
+
 		,add_amazon : true
 		,add_first_prime: true
 		,close_tab	: true

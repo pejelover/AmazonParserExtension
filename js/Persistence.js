@@ -1101,7 +1101,7 @@ class Persistence
 			{
 				if( !( i in result.page_sellers ) )
 				{
-					result.page_sellers[ i ] = default_settings.page_sellers;
+					result.page_sellers[ i ] = default_settings.page_sellers[ i ];
 				}
 			}
 

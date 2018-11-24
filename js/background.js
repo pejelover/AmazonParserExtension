@@ -97,15 +97,15 @@ ext.addListener('StockFound',(url,request,tab_id,port)=>
 
 		request.forEach((stock)=>
 		{
-			if( stock.asin in settings.product_sellers_preferences )
-			{
-				let sellers_ids = settings.product_sellers_preferences[ stock.asin ];
+			//if( stock.asin in settings.product_sellers_preferences )
+			//{
+			//	let sellers_ids = settings.product_sellers_preferences[ stock.asin ];
 
-				let index = sellers_ids.indexOf( stock.seller_id );
+			//	let index = sellers_ids.indexOf( stock.seller_id );
 
-				if( index !== -1 )
-					settings.product_sellers_preferences[ stock.asin ].splice( index, 1 );
-			}
+			//	if( index !== -1 )
+			//		settings.product_sellers_preferences[ stock.asin ].splice( index, 1 );
+			//}
 		});
 
 		//console.log( request[0].qty );

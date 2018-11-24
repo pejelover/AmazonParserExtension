@@ -23,6 +23,11 @@ document.addEventListener('DOMContentLoaded',()=>
 		{
 			let page_sellers	= Utils.form2Object( form );
 
+			page_sellers.add_by_seller_preferences_next_day = 'add_by_seller_preferences_next_day' in page_sellers;
+			page_sellers.add_by_seller_preferences_vendor = 'add_by_seller_preferences_no_next_day' in page_sellers;
+			page_sellers.add_by_seller_preferences_amazon = 'add_by_seller_preferences_amazon' in page_sellers;
+			page_sellers.add_by_seller_preferences_vendor = 'add_by_seller_preferences_vendor' in page_sellers;
+
 			page_sellers.add_first	= 'close_tab' in page_sellers;
 			page_sellers.add_amazon = 'add_amazon' in page_sellers;
 			page_sellers.add_first_prime = 'add_first_prime' in page_sellers;
