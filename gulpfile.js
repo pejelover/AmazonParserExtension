@@ -26,6 +26,7 @@ gulp.task('watch',()=>
 	gulp.watch(['./node_modules/extension-framework/*.js'
 		,'./node_modules/promiseutil/*.js'
 		,'./node_modules/db-finger/DatabaseStore.js'
+		,'./node_modules/dealer-sorter/ArraySorter.js'
 		,amazonDir+'/*.js'],['scripts']);
 });
 
@@ -78,6 +79,9 @@ gulp.task('scripts', function()
 	let diabetes =  gulp.src(['./node_modules/diabetes/*.js'])
 		.pipe( gulp.dest('./dist/js/Diabetes/' ) );
 
-	return mergeStream( extension, utils, scripts, ap, db, diabetes );
+	let dealerSorter =  gulp.src(['./node_modules/dealer-sorter/*.js'])
+		.pipe( gulp.dest('./dist/js/dealer-sorter/' ) );
+
+	return mergeStream( extension, utils, scripts, ap, db, diabetes, dealerSorter );
 });
 

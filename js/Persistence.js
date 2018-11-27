@@ -150,7 +150,6 @@ class Persistence
 			let result = [];
 			let prefix  = 'https://www.amazon.com';
 
-			result.push(['asin','seller id','url','time']);
 
 			asins.forEach((asin)=>
 			{
@@ -184,7 +183,13 @@ class Persistence
 				}
 			});
 
-			return Promise.resolve( result );
+
+			let asorter = new ArraySorter();
+			let a = asorter.sort( result , 0 );
+
+			a.splice( 0, 0,['asin','seller id','url','time']);
+
+			return Promise.resolve( a );
 		});
 	}
 
