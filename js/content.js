@@ -493,7 +493,7 @@ function parseVendorsPage()
 
 		//client.executeOnBackground("ProductsFound", [p] );
 
-		Promise.resolve()
+		PromiseUtils.resolveAfter( 1000, 1000 )
 		.then(()=>
 		{
 			//One day fullfilled by amazon
