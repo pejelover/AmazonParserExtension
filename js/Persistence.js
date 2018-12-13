@@ -794,8 +794,6 @@ class Persistence
 						row = [];
 						keys.forEach((key)=>
 						{
-
-
 							if( key == "asin" || key == "producer" || key == "title" || key == "url" )
 							{
 								row.push( this.getValueFromRow( key, product ) );
@@ -813,7 +811,6 @@ class Persistence
 
 						s+= row.join('\t')+'\n';
 					});
-
 				}
 			}
 			catch(e)
@@ -1147,7 +1144,12 @@ class Persistence
 
 			date2.setTime( date.getTime() );
 			let dateString = date2.getFullYear()+'-'+f( date2.getMonth()+1 )+'-'+f( date2.getDate() );
+
 			let fObject = { id: offer.asin+'-'+offer.seller_id, asin: offer.asin, seller_id: offer.seller_id };
+
+			if( offer.price == null )
+				return;
+
 			fObject[ dateString ] = offer.price.replace(/^\$/,'');
 			transformedObjects.push(  fObject );
 			allColumns[ dateString ] = Object.keys( allColumns ).length;
@@ -1165,7 +1167,15 @@ class Persistence
 
 		let itemFilter		= null;
 
-		let itemSelector = (oldItem,newItem)=>newItem;
+		let itemSelector = (oldItem,newItem)=>{
+			if( !newItem )
+				return oldItem;
+
+			if( !oldItem )
+				return newItem;
+
+			return newItem;
+		};
 
 		let valueMapperGetter = ( key, item )=>
 		{
@@ -1177,11 +1187,31 @@ class Persistence
 		(
 			transformedObjects//array
 			,'id' //index_id
-			,itemFilter
+			,null
 			,columns
 			,itemSelector
 			,valueMapperGetter
 		);
+
+		/*j
+		let arrayReport = this.genericIndexTableGenerator
+		(
+			reportRows
+			,'id'
+			,null //itemFilter
+			,columns
+			,this.getQtyABestValue//ItemSelector
+			,valueMapperGetter
+		);
+		*/
+
+
+
+
+
+
+
+
 
 		finalArray.splice( 0, 0, columns );
 
