@@ -505,21 +505,24 @@ function parseVendorsPage()
 				&& settings.page_sellers.add_by_seller_preferences_amazon
 				&& p.asin in settings.product_sellers_preferences )
 			{
-				let is_one_day_shipping = true;
-				let fullfilled_by_vendor = false;
-				let fullfilled_by_amazon = true;
-
-				let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
+				return PromiseUtils.resolveAfter(1500,1500).then(()=>
 				{
-					let search = seller_id;
+					let is_one_day_shipping = true;
+					let fullfilled_by_vendor = false;
+					let fullfilled_by_amazon = true;
 
-					if( search === 'ATVPDKIKX0DER' )
-						search = 'amazon.com';
+					let addedToCart = settings.product_sellers_preferences[ p.asin ].some((seller_id)=>
+					{
+						let search = seller_id;
 
-					return parser.productSellersPage.addToCartBySellerId( search, is_one_day_shipping, fullfilled_by_vendor, fullfilled_by_amazon );
-				});
+						if( search === 'ATVPDKIKX0DER' )
+							search = 'amazon.com';
 
-				return ! addedToCart ? Promise.resolve('No found no one day fullfilled by amazaon') : Promise.reject( 'Found no one day  && fullfilled by amazon');
+						return parser.productSellersPage.addToCartBySellerId( search, is_one_day_shipping, fullfilled_by_vendor, fullfilled_by_amazon );
+					});
+
+					return ! addedToCart ? Promise.resolve('No found no one day fullfilled by amazaon') : Promise.reject( 'Found no one day  && fullfilled by amazon');
+				})
 			}
 
 			return Promise.resolve('No, one Day and fullfilled by amazon options');
