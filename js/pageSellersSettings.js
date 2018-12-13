@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded',()=>
 			page_sellers.add_by_seller_preferences_amazon = 'add_by_seller_preferences_amazon' in page_sellers;
 			page_sellers.add_by_seller_preferences_vendor = 'add_by_seller_preferences_vendor' in page_sellers;
 
-			page_sellers.add_first	= 'close_tab' in page_sellers;
+			page_sellers.add_first	= 'add_first' in page_sellers;
 			page_sellers.add_amazon = 'add_amazon' in page_sellers;
 			page_sellers.add_first_prime = 'add_first_prime' in page_sellers;
 			page_sellers.close_tab	= 'close_tab' in page_sellers;
