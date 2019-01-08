@@ -251,6 +251,25 @@ function cartIntervalFunction()
 	if( cart_blocked )
 		return;
 
+	var extension_id = "hiopjlbicfeflofkoclpiffipoclcenc";
+
+	let products = parser.cartPage.getProducts();
+
+	if( products.length < 8 )
+	{
+		// The ID of the extension we want to talk to.
+		// Make a simple request:
+		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 9 }, (response)=> { console.log( response);});
+	}
+	else if( products.length > 30 )
+	{
+		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 2 }, (response)=> { console.log( response);});
+	}
+	else
+	{
+		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 1 }, (response)=> { console.log( response);});
+	}
+
 	cart_blocked = true;
 
 	let savedForLater = parser.cartPage.getSaveForLaterCount();
@@ -393,6 +412,7 @@ function parseCart()
 		if( !settings.page_cart.parse_stock )
 		{
 			let products = parser.cartPage.getProducts();
+
 
 			let stockArray = products.reduce((array, product)=>
 			{
@@ -661,6 +681,12 @@ function parse()
 			parseCart();
 			break;
 		}
+		case "HAND_MADE_ERROR":
+			if( settings.page_product.close_tab )
+			{
+				client.closeThisTab();
+			}
+			break;
 		case "HANDLE_BUY_BOX":
 		case "PREVIOUS_TO_CART_PAGE":
 		{
