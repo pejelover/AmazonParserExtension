@@ -1,6 +1,6 @@
-
 (function(){
 
+var extension_id = "hiopjlbicfeflofkoclpiffipoclcenc";
 
 var settings	= default_settings;
 var parserSettings	= {};
@@ -251,19 +251,22 @@ function cartIntervalFunction()
 	if( cart_blocked )
 		return;
 
-	var extension_id = "hiopjlbicfeflofkoclpiffipoclcenc";
 
 	let products = parser.cartPage.getProducts();
 
-	if( products.length < 8 )
+	if( products.length < 3 )
+	{
+		//Do nothing
+	}
+	else if( products.length < 12 )
 	{
 		// The ID of the extension we want to talk to.
 		// Make a simple request:
 		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 9 }, (response)=> { console.log( response);});
 	}
-	else if( products.length > 30 )
+	else if( products.length < 15 )
 	{
-		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 2 }, (response)=> { console.log( response);});
+		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 4 }, (response)=> { console.log( response);});
 	}
 	else
 	{
