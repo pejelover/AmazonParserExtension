@@ -212,15 +212,17 @@ document.addEventListener('DOMContentLoaded', function()
 				.then((result)=>
 				{
 					console.log('It Finish');
+					alert('It finish importing');
 					return result;
 				})
 				.catch((e)=>
 				{
-					console.log( e );
+					alert('Fails to importing data');
 				});
 			}
 			catch(e)
 			{
+				alert('Fails to importing data');
 				console.log( e );
 			}
 	    };
