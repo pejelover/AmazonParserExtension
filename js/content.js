@@ -457,18 +457,12 @@ function parseSearchPage()
 
 		let offers = products.reduce((p,c)=>
 		{
-			if(!c || !('seller_id' in  c) )
-				return p;
-
 			c.offers.forEach((offer)=>p.push( offer ) );
 			return p;
 		},[]);
 
 		let stocks = products.reduce((p,c)=>
 		{
-			if(!c ||  !('seller_id' in c) )
-				return p;
-
 			c.stock.forEach((stock)=>p.push( stock ) );
 			return p;
 		},[]);
@@ -482,18 +476,27 @@ function parseSearchPage()
 		let links = parser.getAllLinks();
 		client.executeOnBackground('AddUrls', links );
 		return PromiseUtils.resolveAfter(true,1500);
+
 	})
 	.then(()=>
 	{
-		let next = document.querySelector('#pagnNextLink');
-		if( next )
+		if( settings.page_search.action === 'parse' )
 		{
-			next.click();
+			let next = document.querySelector('#pagnNextLink');
+			if( next )
+			{
+				next.click();
+			}
+			else
+			{
+				document.body.setAttribute('background-color: red');
+			}
 		}
-		else
+		else if( settings.page_search.action === 'close' )
 		{
-			document.body.setAttribute('background-color: red');
+				client.closeThisTab();
 		}
+
 	})
 	.catch((error)=>
 	{

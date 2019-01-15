@@ -19,6 +19,10 @@ var default_settings = {
 		parse_stock	: false
 		,close_tab	: false
 	}
+	,page_search:
+	{
+		action		: 'do_nothing'
+	}
 	,page_previous_cart:
 	{
 		close_tab	: false

@@ -1,4 +1,4 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -11,9 +11,7 @@
 		<script src="js/Persistence.js"></script>
 		<script src="js/defaultSettings.js"></script>
 		<script src="js/Diabetes/Utils.js"></script>
-		<script src="js/popupSettings.js"></script>
-
-
+		<script src="js/pageSearch.js"></script>
 		<style>
 			#main_container
 			{
@@ -44,53 +42,28 @@
 				</li>
 			</ul>
 
-
-			<hr>
-			<ul>
-				<li>
-					<a href="productSellersPreferences.html">Product Sellers preferences</a>
-				</li>
-
-				<li>
-					<a href="pageProductSettings.html">Product Page Settings</a>
-				</li>
-				<li>
-					<a href="pageCartSettings.html">Cart settings</a>
-				</li>
-				<li>
-					<a href="pagePrevCartSettings.html">Previous to cart Settings</a>
-				</li>
-				<li>
-					<a href="pageSellersSettings.html">Sellers Settings</a>
-				</li>
-				<li>
-					<a href="pageStatus.html">Status</a>
-				</li>
-				<li>
-					<a href="pageSearch.html">Search Settings</a>
-				</li>
-
-			</ul>
-
-			<hr>
-			<a href="#" id="openBackup">Backup</a>
-			<br>
-
-			<form action="#" name="form" id="popupSettingsForm">
-
+			<form action="#" name="form" id="pageSearchSettingsForm">
+				<h3>Parsing Options</h3>
 				<div class="form-check">
-					<input class="form-check-input" type="radio" name="parse_status" value="parse_enabled" id="parse_enabled">
-					<label class="form-check-label" for="parse_enabled">
-						Parsing Enable
-					</label>
-				</div>
-				<div class="form-check">
-					<input class="form-check-input" type="radio" name="parse_status" value="parse_disabled" id="parse_disabled">
-					<label class="form-check-label" for="parse_disabled">
-						All Parsers Disabled
+					<input class="form-check-input" type="radio" name="action" id="do_nothing" value="do_nothing">
+					<label class="form-check-label" for="do_nothing">
+						Do nothing
 					</label>
 				</div>
 
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="action" id="close_tab" value="close_tab">
+					<label class="form-check-label" for="close_tab">
+						Close tab
+					</label>
+				</div>
+
+				<div class="form-check">
+					<input class="form-check-input" type="radio" name="action" id="continue" value="parse">
+					<label class="form-check-label" for="continue">
+						Parse and next
+					</label>
+				</div>
 				<div style="padding-top: 20px">
 					<button id="saveSettingsButton" class="btn btn-primary btn-sm" type="button">Save</button>
 				</div>
