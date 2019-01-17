@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "db-finger": "^2.0.2",
+    "dealer-sorter": "^2.0.1",
+    "diabetes": "^1.0.7",
+    "extension-framework": "^2.0.1",
+    "promiseutil": "^2.0.1"
+  }
+}

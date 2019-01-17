@@ -1,3 +1,6 @@
+import Persistence from './Persistence.js';
+import Utils from './Diabetes/Util.js';
+import Client from './extension-framework/Client.js';
 
 document.addEventListener('DOMContentLoaded', function()
 {
@@ -11,15 +14,15 @@ document.addEventListener('DOMContentLoaded', function()
 		return d < 10 ? "0"+d: d;
 	};
 
-	Utils.getById("date1").value = date.getFullYear()+"-"+f( date.getMonth()+1 )+"-"+date.getDate();
+	Utils.getById('date1').value = date.getFullYear()+"-"+f( date.getMonth()+1 )+"-"+date.getDate();
 
 	//Utils.getById("date2").value = date1.toISOString();
 	//var ext = new Client();
 
-	chrome.windows.getCurrent((w)=>
-	{
-		//ext.executeOnBackground('RegisterWindow', { window_id : w.id	});
-	});
+	//chrome.windows.getCurrent((w)=>
+	//{
+	//	//ext.executeOnBackground('RegisterWindow', { window_id : w.id	});
+	//});
 
 	//document.getElementById('parseAgain').addEventListener('click',(evt)=>
 	//{
@@ -31,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function()
 	//	client.executeOnClients('ExtractAllLinks',{});
 	//});
 
-	document.getElementById('downloadButton').addEventListener('click',(evt)=>
+	Utils.getById('downloadButton').addEventListener('click',(evt)=>
 	{
 		let type = document.getElementById('report-type').value;
 

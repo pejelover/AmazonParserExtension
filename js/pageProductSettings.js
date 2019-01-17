@@ -1,3 +1,8 @@
+import Persistence from './Persistence.js';
+import Utils from './Diabetes/Util.js';
+import default_settings from './default_settings.js';
+import Client from './extension-framework/Client.js';
+
 var settings = default_settings;
 
 document.addEventListener('DOMContentLoaded',()=>

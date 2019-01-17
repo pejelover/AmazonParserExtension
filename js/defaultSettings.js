@@ -1,4 +1,4 @@
-var default_settings = {
+export default  default_settings = {
 
 	id: 1
 	,parse_status	: false

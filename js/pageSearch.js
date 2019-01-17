@@ -1,3 +1,7 @@
+import Persistence from './Persistence.js';
+import Utils from './Diabetes/Util.js';
+import Client from './extension-framework/Client.js';
+import default_settings from './default_settings.js';
 
 var settings = default_settings;
 
@@ -21,7 +25,7 @@ document.addEventListener('DOMContentLoaded',()=>
 
 		Utils.object2form( settings.page_search, form );
 
-		document.getElementById('saveSettingsButton').addEventListener('click',()=>
+		Utils.getById('saveSettingsButton').addEventListener('click',()=>
 		{
 			let search_settings = Utils.form2Object( form );
 			settings.page_search =  search_settings;

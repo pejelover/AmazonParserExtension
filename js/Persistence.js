@@ -1,4 +1,10 @@
-class Persistence
+import AmazonParser from './AmazonParser/AmazonParser.js';
+import PromiseUtil from './PromiseUtils/PromiseUtils.js';
+import DatabaseStore from './db-finger/DatabaseStore.js';
+import default_settings from './default_settings.js';
+import ArraySorter from './dealer-sorter/ArraySorter.js';
+
+export default class Persistence
 {
 	constructor()
 	{

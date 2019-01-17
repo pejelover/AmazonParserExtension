@@ -1,3 +1,5 @@
+import Persistence from './Persistence.js';
+import Utils from './Diabetes/Util.js';
 
 document.addEventListener('DOMContentLoaded', function()
 {
@@ -12,16 +14,17 @@ document.addEventListener('DOMContentLoaded', function()
 
 			dbResume.forEach((store)=>
 			{
-				s += `<li>${store.name} ${store.total} </li>`
+				s += `<li>${store.name} ${store.total} </li>`;
+
 				if( store.indexes.length )
 				{
 					s+='<ul>';
 					store.indexes.forEach((index)=>
 					{
-						s += `<li>${index.name} ${ index.count } </li>`
+						s += `<li>${index.name} ${ index.count } </li>`;
 					});
 					s+='</ul>';
-				};
+				}
 			});
 			s+='</ul>';
 			Utils.getById('pageStatusContainer').innerHTML = s;
