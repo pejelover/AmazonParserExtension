@@ -1,6 +1,5 @@
 import Persistence from './Persistence.js';
 import Server from './extension-framework/Server.js';
-//import default_settings from './default_settings.js';
 
 window.onerror = function(err){
     console.log(err); // logs all errors

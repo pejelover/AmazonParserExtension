@@ -1,8 +1,10 @@
+
 import AmazonParser from './AmazonParser/AmazonParser.js';
-import PromiseUtil from './PromiseUtils/PromiseUtils.js';
+import PromiseUtils from './Promise-Utils/PromiseUtils.js';
 import DatabaseStore from './db-finger/DatabaseStore.js';
 import default_settings from './default_settings.js';
 import ArraySorter from './dealer-sorter/ArraySorter.js';
+import ProductUtils from './AmazonParser/ProductUtils.js';
 
 export default class Persistence
 {

@@ -2,7 +2,7 @@ import Persistence from './Persistence.js';
 import Utils from './Diabetes/Util.js';
 import default_settings from './default_settings.js';
 import Client from './extension-framework/Client.js';
-import PromiseUtils from './promiseutil/PromiseUtils.js';
+import PromiseUtils from './Promise-Utils/PromiseUtils.js';
 
 
 document.addEventListener('DOMContentLoaded', function()

@@ -1,19 +1,38 @@
 import AmazonParser from './AmazonParser/AmazonParser.js';
-import PromiseUtil from './PromiseUtils/PromiseUtils.js';
+import PromiseUtils from './Promise-Utils/PromiseUtils.js';
 import DatabaseStore from './db-finger/DatabaseStore.js';
 import default_settings from './default_settings.js';
 import ArraySorter from './dealer-sorter/ArraySorter.js';
-
-(function(){
+import Client from './extension-framework/Client.js';
 
 var extension_id = "hiopjlbicfeflofkoclpiffipoclcenc";
 
 var settings	= default_settings;
 var parserSettings	= {};
 
+
 var parser	= new AmazonParser( parserSettings );
 var client	= new Client();
 var last_url = window.location.href;
+
+let cart_interval	= -1;
+let cart_blocked	= false;
+
+client.addListener('ExtractAllLinks',()=>
+{
+	let links = parser.getAllLinks();
+	client.executeOnBackground('AddUrls', links );
+});
+
+client.addListener("ParseAgain",()=>
+{
+	parse();
+});
+
+export default function main()
+{
+	console.log('Loaded');
+}
 
 function checkForRobots()
 {
@@ -68,7 +87,6 @@ function parseProductPage()
 			return { url: p, type: parser.getPageType( p ), time: parser.productUtils.getTime() };
 		});
 
-
 		if( allUrls.length )
 			client.executeOnBackground('AddUrls', allUrls );
 
@@ -94,8 +112,6 @@ function parseProductPage()
 		{
 			seller_id = p.offers[0].seller_id;
 		}
-
-
 
 		let seller_match = true;
 
@@ -249,8 +265,6 @@ function parseProductPage()
 	});
 }
 
-let cart_interval	= -1;
-let cart_blocked	= false;
 
 function cartIntervalFunction()
 {
@@ -669,17 +683,6 @@ function parseVendorsPage()
 }
 
 
-client.addListener('ExtractAllLinks',()=>
-{
-	let links = parser.getAllLinks();
-	client.executeOnBackground('AddUrls', links );
-});
-
-client.addListener("ParseAgain",()=>
-{
-	parse();
-});
-
 function parse()
 {
 	//var parseOnlyOneVendor	= true;
@@ -807,18 +810,16 @@ if(  window.location.hostname === 'www.amazon.com' )
 		parse();
 	});
 
-	window.addEventListener('load',()=>
-	{
-		console.log('DOcument Load');
-		client.executeOnBackground
-		(
-			"UrlDetected"
-			,{
-				url: window.location.href
-				,type: parser.getPageType( window.location.href )
-			}
-		);
-	});
+	console.log('DOcument Load');
+	client.executeOnBackground
+	(
+		"UrlDetected"
+		,{
+			url: window.location.href
+			,type: parser.getPageType( window.location.href )
+		}
+	);
+
 
 
 	let checkUrl = ()=>
@@ -838,4 +839,4 @@ if(  window.location.hostname === 'www.amazon.com' )
 		setInterval( checkUrl, 1500 );
 }
 
-})();
+
