@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2
-	,"name": "APE ES6"
-	,"description": "Amazon Parser ES6 version"
-	,"version": "1.0.0"
+	,"name": "Amazon Parser Extension"
+	,"description": "What the name says"
+	,"version": "1.0"
 	,"background": {
         "page": "background.html"
     }
