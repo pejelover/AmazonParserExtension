@@ -1281,7 +1281,11 @@ export default class Persistence
 					console.log('Removing', toDelete.length );
 
 					if( toDelete.length )
-						return this.database.deleteByKeyIds('links', toDelete );
+					{
+						return this.database.deleteByKeyIds('links', toDelete ).then((result)=>{
+							return links.length ? Promise.resolve( links[ links.length - 1 ].id ) : Promise.resolve( 0 );
+						});
+					}
 
 					return links.length ? Promise.resolve( links[ links.length - 1 ].id ) : Promise.resolve( 0 );
 				});
