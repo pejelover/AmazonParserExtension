@@ -1712,4 +1712,71 @@ export default class Persistence
 
 		return Object.values( indexes );
 	}
+
+	deleteStock(asin,seller_id,date,qty, is_prime )
+	{
+		return this.database.getAll('stock',{index: 'asin', '=': asin })
+		.then((stockArray)=>
+		{
+			let toDelete = stockArray.filter((stock)=>
+			{
+
+
+				if( is_prime !== null && is_prime !== stock.is_prime )
+					return false;
+
+				if( seller_id !== null )
+					if( stock.seller_id !== seller_id )
+						return false;
+
+				if( qty !== null && (''+qty) !== (''+stock.qty ) )
+					return false;
+
+				if( date !== null )
+				{
+					let stockDate = new Date( stock.time );
+					let date2 = new Date();
+
+					date2.setTime( stockDate.getTime() );
+
+					if( date2.toISOString().substring(0,10) !== date )
+						return false;
+				}
+
+				return true;
+			});
+
+			if( toDelete.length === 0 )
+				return Promise.resolve( 0 );
+
+			let ids = toDelete.map( i=> i.id );
+
+			return this.database.deleteByKeyIds('stock',ids );
+		});
+	}
+
+	addStockItem(asin,seller_id, date, qty, is_prime )
+	{
+		if( !(asin && date && qty && seller_id )  )
+			return Promise.resolve('Fail');
+
+		if( !(/\d{4}-\d{2}-\d{2}/.test( date )))
+			return Promise.resolve('Fail');
+
+
+		if( !(/^\d{4}-\d{2}-\d{2}/.test( date )))
+              console.log('False');
+
+		//2019-
+        let d = new Date();
+        d.setFullYear( parseInt( date.substring(0,4) ) );
+        d.setMonth( parseInt( date.substring( 5,7 ) )-1 );
+        d.setDate( parseInt( date.substring( 8, 10 ) ) );
+        d.setHours( 10 );
+        d.setMinutes( 0 );
+        d.setSeconds( 0 );
+	    d.setMilliseconds(0);
+
+		return this.addStock([{asin: asin, seller_id: seller_id, time: d.toISOString(), qty: qty, is_prime: is_prime }]);
+	}
 }

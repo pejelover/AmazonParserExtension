@@ -32,31 +32,62 @@ document.addEventListener('DOMContentLoaded', function()
 		{
 			case 'Products':
 			{
+				Utils.getById('backupStatus').innerHTML = '';
 
-				let start = '0040423131';
-
-				return persistence.getAllIncremental('products',{ '>=': start },'asin')
-				.then((productList)=>
+				persistence.database.createBackup().then(( obj )=>
 				{
-					let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });
-					let date = new Date();
-					Utils.getById('backupStatus').innerHTML = '';
+					for(let i in obj)
+					{
+						let objb = {};
+						objb[ i ] = obj[ i ];
 
-					let anchor = window.document.createElement('a');
-					anchor.setAttribute('download', 'PRODUCTS_backup_'+( date.toISOString() )+'.json');
-					anchor.setAttribute('href', href );
-					anchor.textContent = 'Backup_Products'+date.toISOString();
-					anchor.classList.add('button');
+						let string = JSON.stringify( objb );
+						console.log( string.length );
+						let blob = new Blob([string],{ type:'application/json'});
+						string = null;
+						let objectURL = URL.createObjectURL( blob );
 
-					Utils.getById('backupStatus').append( anchor );
+						delete obj[ i ];
 
-					return persistence.getStockList( null, null );
-				})
-				.catch((e)=>
-				{
-					console.log( e );
-					Utils.alert('An error occurred please check logs');
+						let date = new Date();
+
+						let anchor = window.document.createElement('a');
+						anchor.setAttribute('download', i.toUpperCase()+'_backup_'+date.toISOString()+'.json');
+						anchor.setAttribute('href', objectURL );
+						anchor.textContent = 'Backup_'+i.toUpperCase()+"_"+date.toISOString();
+						anchor.classList.add('button');
+						Utils.getById('backupStatus').append( anchor );
+						//URL.revokeObjectURL( objectURL );
+						let br = document.createElement('br');
+						Utils.getById('backupStatus').append( br );
+					}
 				});
+
+				//let start = '0040423131';
+
+				//return persistence.getAllIncremental('products',{ '>=': start },'asin')
+				//.then((productList)=>
+				//{
+				//	let href = persistence.getDownloadHref({ products: productList ,stock:[] ,offers: [] });
+				//	let date = new Date();
+				//	Utils.getById('backupStatus').innerHTML = '';
+
+				//	let anchor = window.document.createElement('a');
+				//	anchor.setAttribute('download', 'PRODUCTS_backup_'+( date.toISOString() )+'.json');
+				//	anchor.setAttribute('href', href );
+				//	anchor.textContent = 'Backup_Products'+date.toISOString();
+				//	anchor.classList.add('button');
+
+				//	Utils.getById('backupStatus').append( anchor );
+
+				//	return persistence.getStockList( null, null );
+				//})
+				//.catch((e)=>
+				//{
+				//	console.log( e );
+				//	Utils.alert('An error occurred please check logs');
+				//});
+				break;
 			}
 			case 'Offers':
 			{

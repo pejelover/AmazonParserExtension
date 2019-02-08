@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<script type="module" src="js/pageEdit.js"></script>
+		<style>
+			#main_container
+			{
+				min-width: 400px;
+					padding: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="main_container">
+			<ul class="nav">
+				<li class="nav-item">
+					<a class="nav-link active" href="popup.html">Reports</a>
+				</li>
+				<li>
+					<a class="nav-link active" href="pageListReports.html">List</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="pageParse.html">Parse</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="popupSettings.html">Settings</a>
+				</li>
+			</ul>
+
+			<div id="pageStatusContainer" class="form-group">
+    			<label for="pageEditTextarea">Edit Stock</label>
+				<div class="alert alert-light" role="alert">
+					Action(.-+) Asin seller_id date qty is_prime
+				</div>
+				<textarea id="pageEditTextarea" class="form-control" placeholder="+ foo sell 2019-01-22 3 1"></textarea>
+			</div>
+			<div>
+				<a href="#" id="pageEditButton" class="btn btn-primary">Edit</a>
+			</div>
+		</div>
+	</body>
+</html>
