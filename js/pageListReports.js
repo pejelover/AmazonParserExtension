@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function()
 				download('urlsByAsin_'+dateStr+'.csv', string );
 			});
 		}
-		else
+		else if( type === 'allAsinBySeller' )
 		{
 			let seller_id = Utils.getById('asinList').value.trim();
 			persistence.getAllAsinForSeller(seller_id ).then(( asins )=>
@@ -74,6 +74,25 @@ document.addEventListener('DOMContentLoaded', function()
 
 					download('urls_'+seller_id+'_'+dateStr+'.csv', string );
 				});
+			});
+		}
+		else
+		{
+			let asins = Utils.getById('asinList').value.trim().split('\n');
+
+			persistence.getProductListByAsins( asins )
+			.then((products)=>
+			{
+				let date		= new Date();
+				var dateStr		= date.toISOString().substring(0,19).replace(/\D/g,'');
+				let filename	= 'Products_'+dateStr+'.csv';
+				let s = persistence.generateRawReport( products );
+				download( filename ,s );
+			})
+			.catch((e)=>
+			{
+				console.log( e );
+				Utils.alert('An error occorred');
 			});
 		}
 	});

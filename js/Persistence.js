@@ -586,6 +586,28 @@ export default class Persistence
 		//return this.database.getAll('stock', options );
 	}
 
+	getProductListByAsins( asin_list )
+	{
+		if( asin_list.length === 0 )
+			return Promise.resolve([]);
+
+		let x  = {};
+
+		asin_list.forEach(i => x[i]=1 );
+
+		let asins = Object.keys( x ).sort((a,b)=>
+		{
+			if( a == b )
+				return 0;
+			return a < b ? -1 : 1;
+		});
+
+		let options ={'>=':asins[0], '<=':asins[asins.length-1] };
+
+		return this.database.getByKey('products',asins, options );
+
+	}
+
 	getProductList( date1, date2 )
 	{
 		console.log( date1, date2 );
