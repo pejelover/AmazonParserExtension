@@ -461,7 +461,8 @@ function parseSearchPage()
 	{
 		return PromiseUtils.tryNTimes(()=>
 		{
-			let c = document.querySelectorAll( parser.getSearchListSelector( 15 ) );
+			let searchSelector = parser.getSearchListSelector( 15 );
+			let c = document.querySelectorAll( searchSelector );
 			if( c.length === 0 )
 				return false;
 
@@ -502,14 +503,15 @@ function parseSearchPage()
 	{
 		if( settings.page_search.action === 'parse' )
 		{
-			let next = document.querySelector('#pagnNextLink');
+			let next = document.querySelector('#pagnNextLink,[data-component-type="s-pagination"] li.a-last>a');
+
 			if( next )
 			{
 				next.click();
 			}
 			else
 			{
-				document.body.setAttribute('background-color: red');
+				document.body.setAttribute('style','background-color: red');
 			}
 		}
 		else if( settings.page_search.action === 'close' )
