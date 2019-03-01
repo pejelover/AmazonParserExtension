@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function()
 		return d < 10 ? "0"+d: d;
 	};
 
-	Utils.getById('date1').value = date.getFullYear()+"-"+f( date.getMonth()+1 )+"-"+date.getDate();
+	Utils.getById('date1').value = date.getFullYear()+"-"+f( date.getMonth()+1 )+"-"+f( date.getDate() );
 
 	//Utils.getById("date2").value = date1.toISOString();
 	//var ext = new Client();
