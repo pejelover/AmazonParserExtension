@@ -5,9 +5,7 @@ import default_settings from './default_settings.js';
 import ArraySorter from './dealer-sorter/ArraySorter.js';
 import Client from './extension-framework/Client.js';
 
-var extension_id = "hiopjlbicfeflofkoclpiffipoclcenc";
-
-var settings	= default_settings;
+var settings		= default_settings;
 var parserSettings	= {};
 
 
@@ -282,15 +280,15 @@ function cartIntervalFunction()
 	{
 		// The ID of the extension we want to talk to.
 		// Make a simple request:
-		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 9 }, (response)=> { console.log( response);});
+		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 9 }, (response)=> { console.log( response);});
 	}
 	else if( products.length < 15 )
 	{
-		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 4 }, (response)=> { console.log( response);});
+		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 4 }, (response)=> { console.log( response);});
 	}
 	else
 	{
-		chrome.runtime.sendMessage( extension_id ,{ max_tabs: 1 }, (response)=> { console.log( response);});
+		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 1 }, (response)=> { console.log( response);});
 	}
 
 	cart_blocked = true;
