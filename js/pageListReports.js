@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function()
 	{
 		Utils.stopEvent( evt );
 		let type = Utils.getById('report-type').value;
-		if( type == 'links' )
+		if( type == 'links' || type == 'open_links')
 		{
 			let asinList = Utils.getById('asinList').value.split(/\n/);
 			let asinDictionary = {};
@@ -41,13 +41,26 @@ document.addEventListener('DOMContentLoaded', function()
 
 			persistence.getUrlsByAsinReport( asinDictionary ).then(( result )=>
 			{
-				let string = result.reduce((p,c)=>{
-						return p+(c.join('\t') )+'\n';
-				},'');
 
-				let date = new Date();
-				var dateStr = date.toISOString().substring(0,19).replace(/\D/g,'');
-				download('urlsByAsin_'+dateStr+'.csv', string );
+				if( type == 'links' )
+				{
+					let date	= new Date();
+					let string	= result.reduce((p,c)=>{ return p+(c.join('\t') )+'\n'; },'');
+					let dateStr	= date.toISOString().substring(0,19).replace(/\D/g,'');
+					download('urlsByAsin_'+dateStr+'.csv', string );
+				}
+				else
+				{
+					let links = result.slice(1).map( i=>i[2] );
+
+					if( links.length > 0 )
+					{
+						chrome.windows.getCurrent( {},(window_info)=>
+						{
+							chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ open: links, window_id: window_info.id }, (response)=> { console.log( response);});
+						});
+					}
+				}
 			});
 		}
 		else if( type === 'allAsinBySeller' )
