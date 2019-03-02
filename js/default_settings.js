@@ -44,5 +44,6 @@ export default {
 	}
 	,product_sellers_preferences: {
 	}
+	,tab_extension_id: "hiopjlbicfeflofkoclpiffipoclcenc"
 };
 
