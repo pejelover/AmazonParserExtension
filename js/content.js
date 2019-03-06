@@ -80,13 +80,6 @@ function parseProductPage()
 		let sizeVariations = parser.productPage.parseVariationSizeUrls();
 		let paternVariations = parser.productPage.parseVariationUrlsFromPattern();
 
-		let allUrls = colorVariations.concat( sizeVariations, paternVariations ).map( p =>
-		{
-			return { url: p, type: parser.getPageType( p ), time: parser.productUtils.getTime() };
-		});
-
-		if( allUrls.length )
-			client.executeOnBackground('AddUrls', allUrls );
 
 		let p = parser.productPage.getProduct();
 
@@ -98,6 +91,16 @@ function parseProductPage()
 
 		if( p && p.stock.length )
 			client.executeOnBackground('StockFound',p.stock );
+
+		let allUrls = colorVariations.concat( sizeVariations, paternVariations ).map( p =>
+		{
+			return { url: p, type: parser.getPageType( p ), time: parser.productUtils.getTime() };
+		});
+
+		allUrls.push({ url: p.url, type: parser.getPageType( p.url ), time: parser.productUtils.getTime() });
+
+		if( allUrls.length )
+			client.executeOnBackground('AddUrls', allUrls );
 
 		let seller_id = null;
 
