@@ -971,6 +971,7 @@ export default class Persistence
 			,url:true
 			,producer: true
 			,title	: true
+			,price : true
 			//,stock	: true
 			,no_offers	: true
 			,no_offers_text: true
