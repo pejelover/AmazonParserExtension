@@ -159,6 +159,18 @@ document.addEventListener('DOMContentLoaded', function()
 				});
 				break;
 			}
+			case 'urls_added':
+				persistence.getAllIncremental( 'urls',{ index: 'time', '>=' : Utils.getById("date1").value }).then(( urls_array )=>
+				{
+					let result = '';
+					urls_array.forEach((a)=>{
+						result += a.asin+'\t'+a.friendly_ceo+'\t'+a.time+'\n';
+					});
+
+					let date = new Date();
+					let filename= 'Urls_'+(date.toISOString().substring(0,10) )+'.csv';
+					download(filename, result );
+				});
 		}
 	});
 
