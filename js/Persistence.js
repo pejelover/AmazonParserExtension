@@ -14,7 +14,7 @@ export default class Persistence
 		this.database	= new DatabaseStore
 		({
 			name		: 'products'
-			,version	: 21
+			,version	: 22
 			,stores		:{
 				products:
 				{
@@ -77,6 +77,7 @@ export default class Persistence
 					,indexes	:
 					[
 						{indexName: 'friendly_ceo', keyPath: 'friendly_ceo', objectParameters:{ uniq: false, multiEntry: false } }
+						,{ indexName: 'time', keyPath: 'time', objectParameters:{ uniq: false, multiEntry: false} }
 					]
 				}
 				,settings:
@@ -101,6 +102,11 @@ export default class Persistence
 		//this.database.init();
 	}
 
+	addUrlsObjs( toAdd )
+	{
+		return this.database.addItems('urls', toAdd, true );
+	}
+
 	addUrls( urls )
 	{
 
@@ -119,6 +125,7 @@ export default class Persistence
 			{
 				return;
 			}
+
 			toAddKeys[ asin ] = { asin: asin, friendly_ceo: friendlyCeo.substring(1), time: parser.productUtils.getTime() };
 		});
 
