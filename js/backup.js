@@ -212,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function()
 			{
 				let obj= JSON.parse( evt.target.result );
 
-				console.log('Try to save',obj.stock.length);
 
 				Promise.resolve(()=>
 				{
@@ -221,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function()
 				.then(()=>
 				{
 
-					if( 'products' in obj.products )
+					if( 'products' in obj )
 						return persistence.saveProductLists( obj.products );
 
 					return Promise.resolve(1);
@@ -247,6 +246,14 @@ document.addEventListener('DOMContentLoaded', function()
 
 					return Promise.resolve( 1 );
 				})
+				.then(()=>
+				{
+					if( 'urls' in obj )
+						return persistence.addUrlsObjs( obj.urls );
+
+					return Promise.resolve( 1 );
+				})
+
 				.then((result)=>
 				{
 					console.log('It Finish');
