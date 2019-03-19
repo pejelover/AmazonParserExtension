@@ -422,7 +422,7 @@ function cartIntervalFunction()
 	}
 	else
 	{
-		setTimeout(()=>{ location.reload();}, 5000 );
+		setTimeout(()=>{ location.reload();}, 20000 );
 		clearInterval( cart_interval );
 	}
 
