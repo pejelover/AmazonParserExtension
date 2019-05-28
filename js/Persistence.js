@@ -104,7 +104,7 @@ export default class Persistence
 
 	addUrlsObjs( toAdd )
 	{
-		return this.database.addItems('urls', toAdd, true );
+		return this.database.addAll('urls', toAdd, true );
 	}
 
 	addUrls( urls )
@@ -131,7 +131,7 @@ export default class Persistence
 
 		let toAdd = Object.values( toAddKeys );
 
-		return this.database.addItems('urls', toAdd, true ).then(()=>
+		return this.database.addAll('urls', toAdd, true ).then(()=>
 		{
 			return this.database.putItems('links',urls );
 		});
@@ -148,6 +148,7 @@ export default class Persistence
 
 	getUrlsByAsinReport( asinDictionary )
 	{
+		console.log('AsinDictionary',asinDictionary );
 		let asins = Object.keys( asinDictionary ).sort();
 
 		return this.database.getByKey('urls',asins ).then((urlFounds)=>
@@ -199,6 +200,8 @@ export default class Persistence
 			});
 
 
+			console.log( result );
+
 			let asorter = new ArraySorter();
 			let a = asorter.sort( result , 0 );
 
@@ -249,7 +252,7 @@ export default class Persistence
 				return p;
 			},[]);
 
-			this.database.addItems('urls', newUrls, true );
+			this.database.addAll('urls', newUrls, true );
 		});
 
 		//this.database.removeAll('offers',{ '<=':696057 } )
@@ -265,7 +268,7 @@ export default class Persistence
 
 	updateUrl( url )
 	{
-		return this.database.addItems( 'links', [url], true );
+		return this.database.addAll( 'links', [url], true );
 	}
 
 	addNotFound( notFoundObj )
@@ -312,13 +315,13 @@ export default class Persistence
 			return prev;
 		},[]);
 
-		return this.database.addItems( 'stock', filtered, true );
+		return this.database.addIAll( 'stock', filtered, true );
 	}
 
 	addOffers( offersArray )
 	{
 		let filtered = offersArray.filter( offer => 'price' in offer && 'time' in offer );
-		return this.database.addItems( 'offers', filtered , true );
+		return this.database.addAll( 'offers', filtered , true );
 	}
 
 	getOffers(date1,data2Keys)
@@ -1306,7 +1309,7 @@ export default class Persistence
 
 				let toAdd = Object.values( toAddKeys );
 
-				return this.database.addItems('urls', toAdd, true ).then(()=>
+				return this.database.addAll('urls', toAdd, true ).then(()=>
 				{
 					console.log('Removing', toDelete.length );
 
@@ -1750,8 +1753,6 @@ export default class Persistence
 		{
 			let toDelete = stockArray.filter((stock)=>
 			{
-
-
 				if( is_prime !== null && is_prime !== stock.is_prime )
 					return false;
 
@@ -1787,7 +1788,7 @@ export default class Persistence
 
 	addStockItem(asin,seller_id, date, qty, is_prime )
 	{
-		if( !(asin && date && qty && seller_id )  )
+		if( !(asin && date && ( qty || qty === 0 ) && seller_id )  )
 			return Promise.resolve('Fail');
 
 		if( !(/\d{4}-\d{2}-\d{2}/.test( date )))

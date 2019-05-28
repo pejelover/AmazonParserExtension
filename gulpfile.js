@@ -41,7 +41,7 @@ function scripts_task(cb)
 
 	gulp.src(['./js/*.js']).pipe( gulp.dest('./dist/js/') );
 
-	gulp.src(['./node_modules/db-finger/DatabaseStore.js'] )
+	gulp.src(['./node_modules/db-finger/*.js'] )
 		.pipe( gulp.dest('./dist/js/db-finger/' ) );
 
 	gulp.src(['./node_modules/diabetes/*.js'])
@@ -62,7 +62,7 @@ function watch_task(cb)
 			, './*.html'
 			, './node_modules/extension-framework/*.js'
 			,'./node_modules/promiseutil/*.js'
-			,'./node_modules/db-finger/DatabaseStore.js'
+			,'./node_modules/db-finger/*.js'
 			,'./node_modules/dealer-sorter/ArraySorter.js'
 			,amazonDir+'/*.js'
 		]
