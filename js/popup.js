@@ -150,13 +150,13 @@ document.addEventListener('DOMContentLoaded', function()
 			case 'historic_price':
 			{
 
-				persistence.getAllIncremental( 'offers',{ '>=': 0 },'id').then((array)=>
+				persistence.getAllRangePrices({index: 'time','>=':date1.toISOString()}).then((array)=>
 				{
 					let s  = persistence.getPriceReport( array  );//.then((result)=>
 					let date = new Date();
 					let filename= 'Historic_price_'+(date.toISOString().substring(0,10) )+'.csv';
 					download(filename, s );
-				});
+				}).catch((e)=>console.log("ERROR on prices "+e.toString(),e ));
 				break;
 			}
 			case 'urls_added':

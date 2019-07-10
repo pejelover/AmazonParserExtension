@@ -61,6 +61,10 @@ document.addEventListener('DOMContentLoaded', function()
 						});
 					}
 				}
+			})
+			.catch((err)=>
+			{
+				console.log("Error something happen",err);
 			});
 		}
 		else if( type === 'allAsinBySeller' )

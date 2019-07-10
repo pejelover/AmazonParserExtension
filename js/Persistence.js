@@ -315,7 +315,7 @@ export default class Persistence
 			return prev;
 		},[]);
 
-		return this.database.addIAll( 'stock', filtered, true );
+		return this.database.addAll( 'stock', filtered, true );
 	}
 
 	addOffers( offersArray )
@@ -371,7 +371,8 @@ export default class Persistence
 			urls.forEach((i)=>
 			{
 				urlDicts[ i.friendly_ceo  ] = true;
-				asins[ i.asin ] = true;
+				if( 'asin' in i )
+					asins[ i.asin ] = true;
 			});
 
 			let urlValues = Object.keys( urlDicts ).sort();
@@ -384,7 +385,8 @@ export default class Persistence
 
 			urls.forEach((i)=>
 			{
-				asins[ i.asin ] = true;
+				if( 'asin' in i )
+					asins[ i.asin ] = true;
 			});
 
 			return Promise.resolve( Object.keys( asins ) );
@@ -448,7 +450,7 @@ export default class Persistence
 
 	saveProductLists( list )
 	{
-		return this.database.updateItems('products', list );
+		return this.database.updateAll('products', list );
 	}
 
 	/*
@@ -519,6 +521,11 @@ export default class Persistence
 		});
 	}
 	*/
+
+	getAllRangePrices(options)
+	{
+		return this.database.getAll('offers',options);
+	}
 
 	getAllIncremental( storeName, options , indexName )
 	{
@@ -672,18 +679,43 @@ export default class Persistence
 		productsArray.forEach(( product )=>
 		{
 			let row = [];
+
+			let doit = (r,key, obj)=>
+			{
+				let value =  typeof obj[key] === 'string'
+					? obj[key].replace(/\s+/g,' ').trim()
+					: obj[ key ];
+
+				if( value && value.length > 3200 )
+					value = value.substring(0,3200 );
+
+				if( key == "images" )
+					r.push( '"'+value.join('\n')+'"');
+				else
+					r.push( value );
+			};
+
 			keys.forEach((key)=>
 			{
-				if( key in product )
+				if('features' in product && Array.isArray( product.features ) && ['Features_1','Features_2','Features_3','Features_4','Features_5'].indexOf( key ) !== -1 )
 				{
-					let value =  typeof product[key] === 'string'
-						? product[key].replace(/\s+/g,' ').trim()
-						: product[ key ];
-
-					if( value && value.length > 3200 )
-						value = value.substring(0,3200 );
-
-					row.push( value );
+					let index = parseInt( key.split('_')[1] );
+					if( (index-1) < product.features.length )
+						row.push( product.features[ index-1 ] );
+					else
+						row.push('');
+				}
+				else if( key in product )
+				{
+					doit(row, key, product );
+				}
+				else if( 'spec' in product && key in product.spec)
+				{
+					doit( row,key,product.spec );
+				}
+				else if( 'productDetails' in product && key in product.productDetails )
+				{
+					doit(row,key,product.productDetails );
 				}
 				else
 				{
@@ -994,11 +1026,12 @@ export default class Persistence
 			,'Rank Department':1
 			,'description':1
 			//,'Sold by':1
-			//,'fetures_1':1
-			//,'fetures_2':1
-			//,'fetures_3':1
-			//,'fetures_4':1
-			//,'fetures_5':1
+			,'Features_1':1
+			,'Features_2':1
+			,'Features_3':1
+			,'Features_4':1
+			,'Features_5':1
+
 			,'Part Number':1
 			,'Number of Items':1
 			,'Brand Name':1
@@ -1029,6 +1062,8 @@ export default class Persistence
 			//,'Shipping Advisory':1
 			//,'Specification Met':1
 			,'Length':1
+			,'Images': 1
+			,'images': 1
 			//,'Lower Temperature Range':1
 			//,'Upper Temperature Rating':1
 			//,'Included Components':1
