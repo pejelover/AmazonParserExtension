@@ -686,6 +686,11 @@ export default class Persistence
 					? obj[key].replace(/\s+/g,' ').trim()
 					: obj[ key ];
 
+				if( key == 'Shipping Weight' && value !== null )
+				{
+					value = value.replace('(View shipping rates and policies)','');
+				}
+
 				if( value && value.length > 3200 )
 					value = value.substring(0,3200 );
 
@@ -1041,7 +1046,7 @@ export default class Persistence
 			,'Style':1
 			,'UNSPSC Code':1
 			,'UPC':1
-			,'Shipping Weight:':1
+			,'Shipping Weight':1
 			,'ASIN:':1
 			,'Item model number':1
 			,'Average Customer Review':1
