@@ -135,6 +135,31 @@ function parseProductPage()
 			client.executeOnBackground('StockFound',p.stock );
 
 		Promise.resolve(1)
+		.then((result)=>
+		{
+			if( settings.page_product.goto_sellers_pages )
+			{
+				return new Promise((resolve,reject)=>
+				{
+					return PromiseUtils.tryNTimes(()=>
+					{
+						return parser.productPage.followPageProductOffers();
+					},1000,3)
+					.then(()=>
+					{
+						reject('Goint to page products');
+					})
+					.catch(()=>
+					{
+						resolve('Fail go to sellers page');
+					});
+				});
+			}
+			else
+			{
+				Promise.resolve('No go to sellers page set');
+			}
+		})
 		.then(()=>
 		{
 			if( p.stock.length && settings.page_product.close_if_stock_found )
@@ -156,6 +181,7 @@ function parseProductPage()
 			}
 			return Promise.resolve('No stock found for seller');
 		})
+
 		.then(()=>
 		{
 			//Add if add by sellers preference
@@ -225,31 +251,7 @@ function parseProductPage()
 				}
 			});
 		})
-		.then((result)=>
-		{
-			if( settings.page_product.goto_sellers_pages )
-			{
-				return new Promise((resolve,reject)=>
-				{
-					return PromiseUtils.tryNTimes(()=>
-					{
-						return parser.productPage.followPageProductOffers();
-					},1000,3)
-					.then(()=>
-					{
-						reject('Goint to page products');
-					})
-					.catch(()=>
-					{
-						resolve('Fail to add pageProducts');
-					});
-				});
-			}
-			else
-			{
-				Promise.resolve('No go to sellers page set');
-			}
-		})
+
 		.then(()=>
 		{
 			//Last Option
