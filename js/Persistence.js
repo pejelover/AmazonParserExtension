@@ -1590,13 +1590,26 @@ export default class Persistence
 		if( oldValue === undefined || oldValue === null )
 			return newValue === undefined ? null : newValue;
 
+		//if( newValue === null
+		//	|| newValue === undefined
+		//	|| newValue === 'NO FOUND'
+		//	|| newValue === 'Error > 990'
+		//	|| newValue === 'N/A'
+		//	|| ( (newValue === '""' || newValue === "" ) && oldValue !== null && oldValue !== undefined ) )
+		//		return oldValue === undefined ? null : oldValue;
+
+
 		if( newValue === null
-			|| newValue === undefined
-			|| newValue === 'NO FOUND'
-			|| newValue === 'Error > 990'
-			|| newValue === 'N/A'
-			|| ( (newValue === '""' || newValue === "" ) && oldValue !== null && oldValue !== undefined ) )
-				return oldValue === undefined ? null : oldValue;
+            	|| newValue === undefined
+            	|| newValue === 'NO FOUND'
+            	|| newValue === 'Error > 990'
+            	|| newValue === 'N/A'
+            	|| newValue === '""'
+            	|| newValue === ""
+
+         )
+            return oldValue === undefined ? null : oldValue;
+
 
 
 		let a = parseInt( oldValue,10 );

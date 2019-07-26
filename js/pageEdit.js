@@ -71,22 +71,17 @@ function getTokenValues(tokens)
 {
 	let action = tokens[ 0 ];
 	let asin = tokens[ 1 ];
-	let seller_id = null;
+	let seller_id = tokens[2];
+	let is_prime  = tokens[3] === "1" || tokens[3].toLowerCase() === "true";
+
 	let date = null;
 	let qty = null;
-	let is_prime = false;
-
-	if( tokens.length > 2 )
-		seller_id = tokens[2];
 
 	if( tokens.length  > 3 )
-		date = tokens[3];
-
-	if( tokens.length > 4 )
-		qty = tokens[4];
+		date = tokens[4];
 
 	if( tokens.length > 5 )
-		is_prime = tokens[5] === "1" || tokens[5].toLowerCase() === "true";
+		qty = tokens[5];
 
 	return {
 		action		: action

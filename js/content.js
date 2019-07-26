@@ -90,7 +90,15 @@ function parseProductPage()
 			client.executeOnBackground('OffersFound', p.offers );
 
 		if( p && p.stock.length )
+		{
+			if( p.stock.length == 1 && p.stock.qty === 0 )
+			{
+				//asin: "B0002YB40O" is_prime: false qty: 0 seller_id: "A3W01VQBCMJT85" time: "2019-07-25T20:06:00.000Z"
+				p.stock.push({ asin: p.stock[0].asin, seller_id: p.stock[0].seller_id, time: p.stock[0].time, qty: 0, is_prime: true });
+			}
+
 			client.executeOnBackground('StockFound',p.stock );
+		}
 
 		let allUrls = colorVariations.concat( sizeVariations, paternVariations ).map( p =>
 		{
