@@ -91,7 +91,7 @@ function parseProductPage()
 
 		if( p && p.stock.length )
 		{
-			if( p.stock.length == 1 && p.stock.qty === 0 )
+			if( p.stock.length == 1 && p.stock[0].qty === 0 )
 			{
 				//asin: "B0002YB40O" is_prime: false qty: 0 seller_id: "A3W01VQBCMJT85" time: "2019-07-25T20:06:00.000Z"
 				p.stock.push({ asin: p.stock[0].asin, seller_id: p.stock[0].seller_id, time: p.stock[0].time, qty: 0, is_prime: true });
@@ -291,18 +291,23 @@ function cartIntervalFunction()
 	}
 	else if( products.length < 12 )
 	{
+		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 6 }, (response)=> { console.log( response);});
+	}
+	else if( products.length < 17 )
+	{
 		// The ID of the extension we want to talk to.
 		// Make a simple request:
-		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 9 }, (response)=> { console.log( response);});
-	}
-	else if( products.length < 15 )
-	{
 		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 4 }, (response)=> { console.log( response);});
+	}
+	else if( products.length < 20 )
+	{
+		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 3 }, (response)=> { console.log( response);});
 	}
 	else
 	{
-		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 1 }, (response)=> { console.log( response);});
+		chrome.runtime.sendMessage( default_settings.tab_extension_id ,{ max_tabs: 2 }, (response)=> { console.log( response);});
 	}
+
 
 	cart_blocked = true;
 
